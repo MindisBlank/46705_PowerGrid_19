@@ -5,24 +5,18 @@ def main():
 
     # Load network data from file
     lnd = ld.load_network_data('testsystem.txt')
-    (Ybus, Y_fr, Y_to, br_f, br_t, buscode, bus_labels, S_LD,
-     MVA_base, V0, pq_index, pv_index, ref) = lnd
-
-    # For testing, assume Sbus = -S_LD (i.e. injections are the negative of the loads)
-    # This means that generation is determined by the slack bus.
-    Sbus = -S_LD
+    (Ybus, Y_fr, Y_to, br_f, br_t, buscode, bus_labels, Sbus, S_LD,MVA_base, V0, pq_index, pv_index, ref) = lnd
 
     # Set maximum number of iterations and tolerance for convergence
-    max_iter = 20
-    err_tol = 1e-6
+    max_iter = 2
+    err_tol = 1e-4
 
     # Run the Newton-Raphson power flow calculation
-    V, success, n_iter = PowerFlowNewton(Ybus, Sbus, V0, pv_index, pq_index,
-                                         max_iter, err_tol, print_progress=True)
+    V, success, n_iter = PowerFlowNewton(Ybus,Sbus, V0, pv_index, pq_index,
+                                         max_iter, err_tol, print_progress=True, debug=True)
     
     # Display the results (bus voltages, injections, branch flows, etc.)
     DisplayResults(V, lnd)
-
 
 if __name__ == '__main__':
     main()

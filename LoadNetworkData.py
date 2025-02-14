@@ -1,8 +1,11 @@
 import numpy as np
 import ReadNetworkData as rd
+from datetime import datetime
+import os
+from loguru import logger
 
 
-def load_network_data(filename):
+def load_network_data(filename, debug=False):
     """
     Reads a network data file and constructs the network model.
 
@@ -12,17 +15,28 @@ def load_network_data(filename):
       - Arrays with branch indices (br_f, br_t)
       - Bus type codes and labels (buscode, bus_labels)
       - Complex load vector (S_LD in pu)
+      - Specified injection vector (Sbus in pu) computed as S_gen - S_LD
       - System MVA base and initial bus voltage vector (V0)
       - Optionally, indices for PQ, PV, and reference buses (pq_index, pv_index, ref)
 
     Parameters:
         filename (str): Path to the data file.
+        debug (bool): If True, enables detailed logging.
 
     Returns:
-        tuple: (Ybus, Y_fr, Y_to, br_f, br_t, buscode, bus_labels,
-                S_LD, MVA_base, V0, pq_index, pv_index, ref)
+        tuple: (Ybus, Y_fr, Y_to, br_f, br_t, buscode, bus_labels, Sbus, S_LD,
+                MVA_base, V0, pq_index, pv_index, ref)
     """
-    # Declare globals for use elsewhere if desired.
+    module_name = "LoadNetworkData"
+    if debug:
+        if not os.path.exists("Logs"):
+            os.makedirs("Logs")
+        log_filename = os.path.join("Logs", datetime.now().strftime("%d_%m_%y_%H-%M") + ".log")
+        logger.remove()  # Remove default stdout handler
+        logger.add(log_filename, level="DEBUG")
+        logger.debug(f"[{module_name}] Called load_network_data() with filename: {filename}")
+    
+    # Declare globals if needed (Sbus will now be computed)
     global Ybus, Sbus, V0, buscode, ref, pq_index, pv_index
     global Y_fr, Y_to, br_f, br_t, S_LD, ind_to_bus, bus_to_ind
     global MVA_base, bus_labels, bus_kv, v_min, v_max
@@ -31,7 +45,14 @@ def load_network_data(filename):
     (bus_data, load_data, gen_data, line_data, tran_data, mva_base,
      bus_to_ind, ind_to_bus) = rd.read_network_data_from_file(filename)
     MVA_base = mva_base
-
+    if debug:
+        logger.debug(f"[{module_name}] rd.read_network_data_from_file() returned:")
+        logger.debug(f"   bus_data length: {len(bus_data)}")
+        logger.debug(f"   load_data length: {len(load_data)}")
+        logger.debug(f"   gen_data length: {len(gen_data)}")
+        logger.debug(f"   line_data length: {len(line_data)}")
+        logger.debug(f"   tran_data length: {len(tran_data)}")
+    
     # Determine sizes for arrays
     num_buses = len(bus_data)
     num_lines = len(line_data)
@@ -52,28 +73,47 @@ def load_network_data(filename):
     branch_counter = _process_transformer_data(tran_data, bus_to_ind, Ybus,
                                                Y_fr, Y_to, br_f, br_t,
                                                branch_counter)
-    (buscode, bus_labels, V0, bus_kv, v_min, v_max) = _process_bus_data(
-        bus_data, bus_to_ind
-    )
+    (buscode, bus_labels, V0, bus_kv, v_min, v_max) = _process_bus_data(bus_data, bus_to_ind)
     S_LD = _process_load_data(load_data, bus_to_ind, MVA_base, num_buses)
+    # Process generator data to get S_gen
+    S_gen = _process_gen_data(gen_data, bus_to_ind, MVA_base, num_buses)
+    
+    # Compute Sbus: for slack (BUSCODE==3), Sbus = 0; otherwise Sbus = S_gen - S_LD.
+    Sbus = np.zeros(num_buses, dtype=complex)
+    for i in range(num_buses):
+        if buscode[i] == 3:  # Slack bus
+            Sbus[i] = 0
+        else:
+            Sbus[i] = S_gen[i] - S_LD[i]
+    
+    if debug:
+        logger.debug(f"[{module_name}] Computed S_gen: {S_gen}")
+        logger.debug(f"[{module_name}] Computed S_LD: {S_LD}")
+        logger.debug(f"[{module_name}] Computed Sbus: {Sbus}")
+    
     pq_index, pv_index, ref = _classify_bus_types(buscode)
-
+    
     # Optionally convert lists to numpy arrays
     pq_index = np.array(pq_index)
     pv_index = np.array(pv_index)
-
-    return (Ybus, Y_fr, Y_to, br_f, br_t, buscode, bus_labels, S_LD,
+    
+    if debug:
+        logger.debug(f"[{module_name}] Final outputs:")
+        logger.debug(f"   Ybus shape: {Ybus.shape}")
+        logger.debug(f"   Y_fr shape: {Y_fr.shape}")
+        logger.debug(f"   Y_to shape: {Y_to.shape}")
+        logger.debug(f"   V0 length: {len(V0)}")
+        logger.debug(f"   MVA_base: {MVA_base}")
+        logger.debug(f"   pq_index: {pq_index}")
+        logger.debug(f"   pv_index: {pv_index}")
+        logger.debug(f"   Sbus: {Sbus}")
+        logger.debug(f"[{module_name}] load_network_data() completed successfully.")
+    
+    return (Ybus, Y_fr, Y_to, br_f, br_t, buscode, bus_labels, Sbus, S_LD,
             MVA_base, V0, pq_index, pv_index, ref)
 
 
-def _process_line_data(line_data, bus_to_ind, Ybus, Y_fr, Y_to,
-                       br_f, br_t, branch_counter):
-    """
-    Process line data (without tap ratios) to update Ybus and branch matrices.
-
-    Expected line data format:
-        [fr_bus, to_bus, ID, R, X, B, MVA_rat, X2, X0]
-    """
+def _process_line_data(line_data, bus_to_ind, Ybus, Y_fr, Y_to, br_f, br_t, branch_counter):
     for ld in line_data:
         fr_bus, to_bus = ld[0], ld[1]
         R, X, B = ld[3], ld[4], ld[5]
@@ -85,19 +125,16 @@ def _process_line_data(line_data, bus_to_ind, Ybus, Y_fr, Y_to,
         i = bus_to_ind[fr_bus]
         j = bus_to_ind[to_bus]
 
-        # Update Ybus (series + shunt contributions)
         Ybus[i, i] += y_series + y_shunt
         Ybus[j, j] += y_series + y_shunt
         Ybus[i, j] -= y_series
         Ybus[j, i] -= y_series
 
-        # Build branch admittance matrices
         Y_fr[branch_counter, i] = y_series + y_shunt
         Y_fr[branch_counter, j] = -y_series
         Y_to[branch_counter, i] = -y_series
         Y_to[branch_counter, j] = y_series + y_shunt
 
-        # Save branch indices in bus-index space
         br_f[branch_counter] = i
         br_t[branch_counter] = j
 
@@ -106,15 +143,7 @@ def _process_line_data(line_data, bus_to_ind, Ybus, Y_fr, Y_to,
     return branch_counter
 
 
-def _process_transformer_data(tran_data, bus_to_ind, Ybus, Y_fr, Y_to,
-                              br_f, br_t, branch_counter):
-    """
-    Process transformer data to update Ybus and branch matrices.
-
-    Expected transformer data format:
-        [fr_bus, to_bus, ID, R_eq, X_eq, n_pu, ang_deg,
-         MVA_rat, fr_con, to_con, X2, X0]
-    """
+def _process_transformer_data(tran_data, bus_to_ind, Ybus, Y_fr, Y_to, br_f, br_t, branch_counter):
     for td in tran_data:
         fr_bus, to_bus = td[0], td[1]
         R_eq, X_eq = td[3], td[4]
@@ -124,19 +153,16 @@ def _process_transformer_data(tran_data, bus_to_ind, Ybus, Y_fr, Y_to,
         y_series = 1 / Z_series if Z_series != 0 else 0
         y_shunt = 0  # No line charging for transformers
 
-        # Calculate the complex tap ratio with phase shift
         a = n_pu * np.exp(1j * np.deg2rad(ang_deg))
 
         i = bus_to_ind[fr_bus]
         j = bus_to_ind[to_bus]
 
-        # Update Ybus using the off-nominal tap model
         Ybus[i, i] += y_series / (abs(a) ** 2)
         Ybus[i, j] -= y_series / np.conjugate(a)
         Ybus[j, i] -= y_series / a
         Ybus[j, j] += y_series
 
-        # Build branch admittance matrices for transformer
         Y_fr[branch_counter, i] = y_series / (abs(a) ** 2) + y_shunt
         Y_fr[branch_counter, j] = -y_series / np.conjugate(a)
         Y_to[branch_counter, i] = -y_series / a
@@ -151,13 +177,6 @@ def _process_transformer_data(tran_data, bus_to_ind, Ybus, Y_fr, Y_to,
 
 
 def _process_bus_data(bus_data, bus_to_ind):
-    """
-    Process bus data to extract bus codes, labels, initial voltage,
-    and voltage limits.
-
-    Expected bus data format:
-        [bus_nr, label, v_init, theta_init, code, kv_level, v_low, v_high]
-    """
     num_buses = len(bus_data)
     buscode = np.zeros(num_buses, dtype=int)
     bus_labels = [''] * num_buses
@@ -181,12 +200,6 @@ def _process_bus_data(bus_data, bus_to_ind):
 
 
 def _process_load_data(load_data, bus_to_ind, MVA_base, num_buses):
-    """
-    Process load data to create the complex load vector (S_LD) in per unit.
-
-    Expected load data format:
-        [bus_nr, P_LD_MW, Q_LD_MVAR]
-    """
     S_LD = np.zeros(num_buses, dtype=complex)
     for ld in load_data:
         bus_nr = ld[0]
@@ -197,16 +210,24 @@ def _process_load_data(load_data, bus_to_ind, MVA_base, num_buses):
     return S_LD
 
 
-def _classify_bus_types(buscode):
+def _process_gen_data(gen_data, bus_to_ind, MVA_base, num_buses):
     """
-    Classify buses based on the bus code:
-      - 1 indicates a PQ bus
-      - 2 indicates a PV bus
-      - 3 indicates the reference bus
+    Process generator data to form the S_gen vector.
+    Expected generator data format:
+        [BUS_NR, MVA_SIZE, P_GEN [MW], P_max [MW], Q_max [MVAr], Q_min [MVAr], ...]
+    We use the P_GEN value (in MW) and assume Q_GEN = 0 for PV buses.
+    """
+    S_gen = np.zeros(num_buses, dtype=complex)
+    for gd in gen_data:
+        bus_nr = gd[0]
+        idx = bus_to_ind[bus_nr]
+        P_gen = gd[2]  # P_GEN in MW
+        # For simplicity, assume Q_gen = 0 (PV buses)
+        S_gen[idx] += complex(P_gen / MVA_base, 0)
+    return S_gen
 
-    Returns:
-        tuple: (pq_index, pv_index, ref)
-    """
+
+def _classify_bus_types(buscode):
     pq_index = []
     pv_index = []
     ref = None
@@ -225,8 +246,10 @@ def _classify_bus_types(buscode):
 # --- Testing block ---
 if __name__ == '__main__':
     filename = 'testsystem.txt'
-    (Ybus, Y_fr, Y_to, br_f, br_t, buscode, bus_labels, S_LD,
-     MVA_base, V0, pq_index, pv_index, ref) = load_network_data(filename)
+    data = load_network_data(filename, debug=True)
+
+    (Ybus, Y_fr, Y_to, br_f, br_t, buscode, bus_labels, Sbus, S_LD,
+     MVA_base, V0, pq_index, pv_index, ref) = data
 
     # Formatter for printing floating-point and complex numbers
     formatter = {
@@ -241,6 +264,7 @@ if __name__ == '__main__':
     print("Branch to indices:", br_t)
     print("\nBus codes:", buscode)
     print("Bus labels:", bus_labels)
+    print("\nSbus (pu) =", np.array2string(Sbus, formatter=formatter))
     print("\nLoad vector S_LD (pu):", np.array2string(S_LD, formatter=formatter))
     print("MVA Base:", f"{MVA_base:.3f}")
     print("Initial Voltages V0:", np.array2string(V0, formatter=formatter))

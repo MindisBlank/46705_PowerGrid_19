@@ -6,15 +6,18 @@ carry out Power Flow calculations in python.
 How to carry out Power Flow in a new *.py file? 
 See the example in table 1 in the assignment text
 """
-
+from datetime import datetime
+import os
 import numpy as np
+from loguru import logger
 import LoadNetworkData as load
 
 # 1. the PowerFlowNewton() function
-def PowerFlowNewton(Ybus, Sbus, V0, pv_index, pq_index, max_iter, err_tol, print_progress=True):
+def PowerFlowNewton(Ybus, Sbus, V0, pv_index, pq_index, max_iter, err_tol, print_progress=True, debug=False):
     """
     Solve the power flow equations using the Newton-Raphson method.
-
+    Optionally logs detailed debug information if debug is True.
+    
     Parameters:
         Ybus (ndarray): N x N bus admittance matrix.
         Sbus (ndarray): N x 1 specified complex power injection vector (in pu).
@@ -24,54 +27,96 @@ def PowerFlowNewton(Ybus, Sbus, V0, pv_index, pq_index, max_iter, err_tol, print
         max_iter (int): Maximum number of iterations.
         err_tol (float): Tolerance for convergence.
         print_progress (bool): Flag to print progress information.
-
+        debug (bool): Flag to enable detailed logging.
+    
     Returns:
         tuple: (V, success, n) where:
             V (ndarray): Final bus voltage vector (complex).
             success (int): 1 if the solution converged, 0 otherwise.
             n (int): Number of iterations used.
     """
+    # Set up logger if debugging is enabled
+    if debug:
+        if not os.path.exists("Logs"):
+            os.makedirs("Logs")
+        log_filename = os.path.join("Logs", "PowerFlow" + datetime.now().strftime("%d_%m_%y_%H_%M") + ".log")
+        logger.add(log_filename, level="DEBUG")
+        logger.debug("Starting PowerFlowNewton()")
+        logger.debug(f"Inputs: Ybus={Ybus}, Sbus={Sbus}, V0={V0}, pv_index={pv_index}, pq_index={pq_index}, max_iter={max_iter}, err_tol={err_tol}")
+
     # Initialization of the status flag and iteration counter
     success = 0
     n = 0
-    V = V0.copy()
+    V = V0
     
     if print_progress:
         print(' iteration maximum P & Q mismatch (pu)')
         print(' --------- ---------------------------')
     
     # Determine mismatch between initial guess and specified power injections
+    if debug:
+        logger.debug("Calling calculate_F()")
+
     F = calculate_F(Ybus, Sbus, V, pv_index, pq_index)
-    
+
+    if debug:
+        logger.debug(f"calculate_F() output: F = {F}")
     # Check if the desired tolerance is reached
+    if debug:
+        logger.debug("Calling CheckTolerance()")
     success = CheckTolerance(F, n, err_tol, print_progress)
-    
+    if debug:
+        logger.debug(f"CheckTolerance() output: success = {success} at iteration {n}")
     # Start the Newton-Raphson iteration loop
     while (not success) and (n < max_iter):
         n += 1  # Increment iteration counter
-        
+        if debug:
+            logger.debug(f"Starting iteration {n}")        
         # Compute derivatives and generate the Jacobian matrix
+        if debug:
+            logger.debug("Calling generate_Derivatives()")
         J_dS_dVm, J_dS_dTheta = generate_Derivatives(Ybus, V)
+        if debug:
+            logger.debug(f"generate_Derivatives() outputs: J_dS_dVm shape = {J_dS_dVm.shape}, J_dS_dTheta shape = {J_dS_dTheta.shape}")
+
+        if debug:
+            logger.debug("Calling generate_Jacobian()")
         J = generate_Jacobian(J_dS_dVm, J_dS_dTheta, pv_index, pq_index)
-        
+        if debug:
+            logger.debug(f"generate_Jacobian() output: J shape = {J.shape}")
         # Compute the update step dx
         dx = np.linalg.solve(J, F)
-        
+        if debug:
+            logger.debug(f"Solved update dx: {dx}")
         # Update voltages and re-calculate mismatch F
+        if debug:
+            logger.debug("Calling Update_Voltages()")
         V = Update_Voltages(dx, V, pv_index, pq_index)
+        if debug:
+            logger.debug(f"Update_Voltages() output: V = {V}")
+
+        if debug:
+            logger.debug("Calling calculate_F() again")
         F = calculate_F(Ybus, Sbus, V, pv_index, pq_index)
-        
+        if debug:
+            logger.debug(f"Updated mismatch F: {F}")
         # Check if the updated solution meets the tolerance
         success = CheckTolerance(F, n, err_tol, print_progress)
-    
+        if debug:
+            logger.debug(f"CheckTolerance() output at iteration {n}: success = {success}")
     # Display convergence message if required
     if success:
         if print_progress:
             print('The Newton-Raphson Power Flow Converged in %d iterations!' % n)
+        if debug:
+            logger.debug(f"PowerFlowNewton() converged in {n} iterations.")
     else:
         if print_progress:
             print('No Convergence !!!\nStopped after %d iterations without solution...' % n)
-    
+        if debug:
+            logger.debug(f"PowerFlowNewton() did not converge after {n} iterations.")
+    if debug:
+        logger.debug(f"Final output: V = {V}, success = {success}, iterations = {n}")
     return V, success, n
 
 
@@ -144,8 +189,7 @@ def CheckTolerance(F, n, err_tol, print_progress=True):
         success (int): 1 if the maximum mismatch is less than err_tol, otherwise 0.
     """
     # Compute the maximum absolute mismatch
-    max_mismatch = np.max(np.abs(F))
-    
+    max_mismatch = np.linalg.norm(F,np.inf)
     # Optionally print progress information
     if print_progress:
         print(f"Iteration {n}: maximum mismatch = {max_mismatch:.6f} (tolerance = {err_tol})")
@@ -390,7 +434,7 @@ def DisplayResults(V, lnd):
     import numpy as np
 
     # Unpack network data from lnd
-    (Ybus, Y_fr, Y_to, br_f, br_t, buscode, bus_labels, S_LD,
+    (Ybus, Y_fr, Y_to, br_f, br_t, buscode, bus_labels,Sbus, S_LD,
      MVA_base, V0, pq_index, pv_index, ref) = lnd
 
     N = len(V)  # number of buses
