@@ -6,7 +6,7 @@ def main():
 
     # Load network data from file
     #lnd = ld.load_network_data('testsystem.txt')
-    lnd = ld.load_network_data('Kundur_two_area_system.txt',debug=True)
+    lnd = ld.load_network_data('testsystem.txt',debug=True)
     (Ybus, Y_fr, Y_to, br_f, br_t, buscode, bus_labels, Sbus, S_LD,MVA_base, V0, pq_index, pv_index, ref) = lnd
 
     # Set maximum number of iterations and tolerance for convergence
