@@ -1,239 +1,249 @@
 import numpy as np
 import ReadNetworkData as rd
 
-def LoadNetworkData(filename):
+
+def load_network_data(filename):
     """
-    Reads a network data file and constructs:
-      - Bus admittance matrix Ybus
-      - Branch admittance matrices Y_fr and Y_to for calculating line flows
-      - Arrays with branch indices: br_f (from bus indices), br_t (to bus indices)
+    Reads a network data file and constructs the network model.
+
+    The function builds:
+      - Bus admittance matrix (Ybus)
+      - Branch admittance matrices (Y_fr and Y_to) for line flows
+      - Arrays with branch indices (br_f, br_t)
       - Bus type codes and labels (buscode, bus_labels)
-      - Complex load vector S_LD (in pu, on system base)
-      - The system MVA base, and the initial bus voltage vector V0
-      - Optionally, indices for PQ, PV and reference buses (pq_index, pv_index, ref)
-    
-    Input:
-      filename : name (or path) of the data file.
-    
-    Returns (and sets as globals):
-      Ybus, Y_fr, Y_to, br_f, br_t, buscode, bus_labels, S_LD, MVA_base, V0,
-      pq_index, pv_index, ref
+      - Complex load vector (S_LD in pu)
+      - System MVA base and initial bus voltage vector (V0)
+      - Optionally, indices for PQ, PV, and reference buses (pq_index, pv_index, ref)
+
+    Parameters:
+        filename (str): Path to the data file.
+
+    Returns:
+        tuple: (Ybus, Y_fr, Y_to, br_f, br_t, buscode, bus_labels,
+                S_LD, MVA_base, V0, pq_index, pv_index, ref)
     """
-    # Declare globals (if you want these available throughout your program)
-    global Ybus, Sbus, V0, buscode, ref, pq_index, pv_index, Y_fr, Y_to, br_f, br_t
-    global S_LD, ind_to_bus, bus_to_ind, MVA_base, bus_labels, bus_kv, v_min, v_max
+    # Declare globals for use elsewhere if desired.
+    global Ybus, Sbus, V0, buscode, ref, pq_index, pv_index
+    global Y_fr, Y_to, br_f, br_t, S_LD, ind_to_bus, bus_to_ind
+    global MVA_base, bus_labels, bus_kv, v_min, v_max
 
-    # Read in the network data (the helper returns the various data lists)
-    bus_data, load_data, gen_data, line_data, tran_data, mva_base, bus_to_ind, ind_to_bus = \
-            rd.read_network_data_from_file(filename)
-
-    # Set system MVA base
+    # Read network data from file using the helper
+    (bus_data, load_data, gen_data, line_data, tran_data, mva_base,
+     bus_to_ind, ind_to_bus) = rd.read_network_data_from_file(filename)
     MVA_base = mva_base
 
-    # Number of buses and branches
-    N = len(bus_data)            # number of buses
-    M_lines = len(line_data)     # number of lines
-    M_trans = len(tran_data)     # number of transformers
-    M_branches = M_lines + M_trans  # total number of branches
+    # Determine sizes for arrays
+    num_buses = len(bus_data)
+    num_lines = len(line_data)
+    num_trans = len(tran_data)
+    num_branches = num_lines + num_trans
 
-    # Initialize bus admittance matrix (N x N)
-    Ybus = np.zeros((N, N), dtype=complex)
+    # Initialize matrices and arrays
+    Ybus = np.zeros((num_buses, num_buses), dtype=complex)
+    Y_fr = np.zeros((num_branches, num_buses), dtype=complex)
+    Y_to = np.zeros((num_branches, num_buses), dtype=complex)
+    br_f = np.zeros(num_branches, dtype=int)
+    br_t = np.zeros(num_branches, dtype=int)
 
-    # Initialize branch admittance matrices (each of size [M_branches x N])
-    Y_fr = np.zeros((M_branches, N), dtype=complex)
-    Y_to = np.zeros((M_branches, N), dtype=complex)
-
-    # Arrays that keep the bus indices (as given in bus_to_ind) for each branch’s ends
-    br_f = np.zeros(M_branches, dtype=int)
-    br_t = np.zeros(M_branches, dtype=int)
-
-    # A branch counter helps us fill the branch-related matrices in order.
     branch_counter = 0
+    branch_counter = _process_line_data(line_data, bus_to_ind, Ybus,
+                                          Y_fr, Y_to, br_f, br_t,
+                                          branch_counter)
+    branch_counter = _process_transformer_data(tran_data, bus_to_ind, Ybus,
+                                               Y_fr, Y_to, br_f, br_t,
+                                               branch_counter)
+    (buscode, bus_labels, V0, bus_kv, v_min, v_max) = _process_bus_data(
+        bus_data, bus_to_ind
+    )
+    S_LD = _process_load_data(load_data, bus_to_ind, MVA_base, num_buses)
+    pq_index, pv_index, ref = _classify_bus_types(buscode)
 
-    # ===============================
-    # Process line data (lines have no tap ratio)
-    # ===============================
+    # Optionally convert lists to numpy arrays
+    pq_index = np.array(pq_index)
+    pv_index = np.array(pv_index)
+
+    return (Ybus, Y_fr, Y_to, br_f, br_t, buscode, bus_labels, S_LD,
+            MVA_base, V0, pq_index, pv_index, ref)
+
+
+def _process_line_data(line_data, bus_to_ind, Ybus, Y_fr, Y_to,
+                       br_f, br_t, branch_counter):
+    """
+    Process line data (without tap ratios) to update Ybus and branch matrices.
+
+    Expected line data format:
+        [fr_bus, to_bus, ID, R, X, B, MVA_rat, X2, X0]
+    """
     for ld in line_data:
-        # Expected structure: [fr_bus, to_bus, ID, R, X, B, MVA_rat, X2, X0]
-        fr_bus = ld[0]
-        to_bus = ld[1]
-        R = ld[3]
-        X = ld[4]
-        B = ld[5]
+        fr_bus, to_bus = ld[0], ld[1]
+        R, X, B = ld[3], ld[4], ld[5]
 
-        # Compute series impedance and its reciprocal (series admittance)
         Z_series = complex(R, X)
         y_series = 1 / Z_series if Z_series != 0 else 0
+        y_shunt = 1j * (B / 2)  # shunt susceptance split equally
 
-        # For lines the shunt susceptance B (in pu) is usually split equally at both ends.
-        y_shunt = 1j * (B / 2)
-
-        # Map bus numbers to indices (using the provided mapping)
         i = bus_to_ind[fr_bus]
         j = bus_to_ind[to_bus]
 
-        # --- Update the bus admittance matrix Ybus ---
-        # Add series and shunt admittance at both ends.
+        # Update Ybus (series + shunt contributions)
         Ybus[i, i] += y_series + y_shunt
         Ybus[j, j] += y_series + y_shunt
         Ybus[i, j] -= y_series
         Ybus[j, i] -= y_series
 
-        # --- Build branch admittance matrices ---
-        # For the "from" end:
+        # Build branch admittance matrices
         Y_fr[branch_counter, i] = y_series + y_shunt
         Y_fr[branch_counter, j] = -y_series
-        # For the "to" end:
         Y_to[branch_counter, i] = -y_series
         Y_to[branch_counter, j] = y_series + y_shunt
 
-        # Save branch “from” and “to” bus indices (in bus-index space)
+        # Save branch indices in bus-index space
         br_f[branch_counter] = i
         br_t[branch_counter] = j
 
         branch_counter += 1
 
-    # ===============================
-    # Process transformer data
-    # ===============================
-    for td in tran_data:
-        # Expected structure: [fr_bus, to_bus, ID, R_eq, X_eq, n_pu, ang_deg, MVA_rat, fr_con, to_con, X2, X0]
-        fr_bus = td[0]
-        to_bus = td[1]
-        R_eq = td[3]
-        X_eq = td[4]
-        n_pu = td[5]
-        ang_deg = td[6]
+    return branch_counter
 
-        # Series impedance and its reciprocal (series admittance)
+
+def _process_transformer_data(tran_data, bus_to_ind, Ybus, Y_fr, Y_to,
+                              br_f, br_t, branch_counter):
+    """
+    Process transformer data to update Ybus and branch matrices.
+
+    Expected transformer data format:
+        [fr_bus, to_bus, ID, R_eq, X_eq, n_pu, ang_deg,
+         MVA_rat, fr_con, to_con, X2, X0]
+    """
+    for td in tran_data:
+        fr_bus, to_bus = td[0], td[1]
+        R_eq, X_eq = td[3], td[4]
+        n_pu, ang_deg = td[5], td[6]
+
         Z_series = complex(R_eq, X_eq)
         y_series = 1 / Z_series if Z_series != 0 else 0
+        y_shunt = 0  # No line charging for transformers
 
-        # For this transformer model, we assume no line charging so shunt = 0.
-        y_shunt = 0
-
-        # Compute the complex tap ratio (magnitude and phase shift)
+        # Calculate the complex tap ratio with phase shift
         a = n_pu * np.exp(1j * np.deg2rad(ang_deg))
-        
-        #n_pu= vindingar á eingur   
 
-        # Map bus numbers to indices
         i = bus_to_ind[fr_bus]
         j = bus_to_ind[to_bus]
 
-        # --- Update Ybus for transformer ---
-        # A common model for off-nominal tap transformers is:
-        #   Ybus[i,i] += y_series / |a|^2
-        #   Ybus[i,j] -= y_series / conj(a)
-        #   Ybus[j,i] -= y_series / a
-        #   Ybus[j,j] += y_series
+        # Update Ybus using the off-nominal tap model
         Ybus[i, i] += y_series / (abs(a) ** 2)
         Ybus[i, j] -= y_series / np.conjugate(a)
         Ybus[j, i] -= y_series / a
         Ybus[j, j] += y_series
 
-        # --- Build branch admittance matrices for transformer ---
-        # In a similar spirit as for lines:
-        Y_fr[branch_counter, i] = y_series / (abs(a) ** 2) + y_shunt  # shunt is zero here
-        Y_fr[branch_counter, j] = - y_series / np.conjugate(a)
-        Y_to[branch_counter, i] = - y_series / a
+        # Build branch admittance matrices for transformer
+        Y_fr[branch_counter, i] = y_series / (abs(a) ** 2) + y_shunt
+        Y_fr[branch_counter, j] = -y_series / np.conjugate(a)
+        Y_to[branch_counter, i] = -y_series / a
         Y_to[branch_counter, j] = y_series + y_shunt
 
-        # Save branch indices
         br_f[branch_counter] = i
         br_t[branch_counter] = j
 
         branch_counter += 1
 
-    # ===============================
-    # Process bus data: assign bus codes, labels and initial voltages
-    # ===============================
-    buscode = np.zeros(N, dtype=int)
-    bus_labels = [''] * N
-    V0 = np.zeros(N, dtype=complex)
-    bus_kv = np.zeros(N)
-    v_min = np.zeros(N)
-    v_max = np.zeros(N)
+    return branch_counter
 
-    # bus_data elements: [bus_nr, label, v_init, theta_init, code, kv_level, v_low, v_high]
+
+def _process_bus_data(bus_data, bus_to_ind):
+    """
+    Process bus data to extract bus codes, labels, initial voltage,
+    and voltage limits.
+
+    Expected bus data format:
+        [bus_nr, label, v_init, theta_init, code, kv_level, v_low, v_high]
+    """
+    num_buses = len(bus_data)
+    buscode = np.zeros(num_buses, dtype=int)
+    bus_labels = [''] * num_buses
+    V0 = np.zeros(num_buses, dtype=complex)
+    bus_kv = np.zeros(num_buses)
+    v_min = np.zeros(num_buses)
+    v_max = np.zeros(num_buses)
+
     for b in bus_data:
         bus_nr = b[0]
         idx = bus_to_ind[bus_nr]
         bus_labels[idx] = b[1].strip() if isinstance(b[1], str) else str(b[1])
-        v_init = b[2]
-        theta_init = b[3]
-        # Represent the initial voltage as a complex number (magnitude and angle in radians)
+        v_init, theta_init = b[2], b[3]
         V0[idx] = v_init * np.exp(1j * np.deg2rad(theta_init))
         buscode[idx] = int(b[4])
         bus_kv[idx] = b[5]
         v_min[idx] = b[6]
         v_max[idx] = b[7]
 
-    # ===============================
-    # Process load data: create complex load vector S_LD (in pu)
-    # ===============================
-    S_LD = np.zeros(N, dtype=complex)
-    # load_data elements: [bus_nr, P_LD_MW, Q_LD_MVAR]
+    return buscode, bus_labels, V0, bus_kv, v_min, v_max
+
+
+def _process_load_data(load_data, bus_to_ind, MVA_base, num_buses):
+    """
+    Process load data to create the complex load vector (S_LD) in per unit.
+
+    Expected load data format:
+        [bus_nr, P_LD_MW, Q_LD_MVAR]
+    """
+    S_LD = np.zeros(num_buses, dtype=complex)
     for ld in load_data:
         bus_nr = ld[0]
         idx = bus_to_ind[bus_nr]
-        P_load_MW = ld[1]
-        Q_load_MVAR = ld[2]
-        # Convert from MW and MVAr to per-unit (pu) using the system MVA base.
+        P_load_MW, Q_load_MVAR = ld[1], ld[2]
         S_LD[idx] = complex(P_load_MW, Q_load_MVAR) / MVA_base
 
-    # ===============================
-    # Identify bus types (PQ, PV, reference) for later use in power flow
-    # ===============================
-    pq_index = []  # PQ bus indices
-    pv_index = []  # PV bus indices
-    ref = None     # Reference bus index
-    for i in range(N):
-        if buscode[i] == 1:      # PQ bus
+    return S_LD
+
+
+def _classify_bus_types(buscode):
+    """
+    Classify buses based on the bus code:
+      - 1 indicates a PQ bus
+      - 2 indicates a PV bus
+      - 3 indicates the reference bus
+
+    Returns:
+        tuple: (pq_index, pv_index, ref)
+    """
+    pq_index = []
+    pv_index = []
+    ref = None
+
+    for i, code in enumerate(buscode):
+        if code == 1:
             pq_index.append(i)
-        elif buscode[i] == 2:    # PV bus
+        elif code == 2:
             pv_index.append(i)
-        elif buscode[i] == 3:    # Reference bus
+        elif code == 3:
             ref = i
 
-    # Optionally convert indices to numpy arrays
-    pq_index = np.array(pq_index)
-    pv_index = np.array(pv_index)
-
-    # (Other data such as generator data can be processed here as needed.)
-
-    # For convenience, you may return the variables (or rely on globals)
-    return (Ybus, Y_fr, Y_to, br_f, br_t, buscode, bus_labels, S_LD,
-            MVA_base, V0, pq_index, pv_index, ref)
+    return pq_index, pv_index, ref
 
 
-
-
-
-
-# --- For testing purposes ---
+# --- Testing block ---
 if __name__ == '__main__':
     filename = 'testsystem.txt'
     (Ybus, Y_fr, Y_to, br_f, br_t, buscode, bus_labels, S_LD,
-     MVA_base, V0, pq_index, pv_index, ref) = LoadNetworkData(filename)
+     MVA_base, V0, pq_index, pv_index, ref) = load_network_data(filename)
 
-    # Define a formatter dictionary for floating-point and complex numbers.
-formatter = {
-    'float_kind': lambda x: f"{x:.3f}",
-    'complex_kind': lambda x: f"{x.real:.3f}{'+' if x.imag >= 0 else ''}{x.imag:.3f}j"
-}
+    # Formatter for printing floating-point and complex numbers
+    formatter = {
+        'float_kind': lambda x: f"{x:.3f}",
+        'complex_kind': lambda x: f"{x.real:.3f}{'+' if x.imag >= 0 else ''}{x.imag:.3f}j"
+    }
 
-print("Ybus =\n", np.array2string(Ybus, formatter=formatter))
-print("\nY_fr =\n", np.array2string(Y_fr, formatter=formatter))
-print("\nY_to =\n", np.array2string(Y_to, formatter=formatter))
-print("\nBranch from indices:", br_f)
-print("Branch to indices:", br_t)
-print("\nBus codes:", buscode)
-print("Bus labels:", bus_labels)
-print("\nLoad vector S_LD (pu):", np.array2string(S_LD, formatter=formatter))
-print("MVA Base:", f"{MVA_base:.3f}")
-print("Initial Voltages V0:", np.array2string(V0, formatter=formatter))
-print("PQ bus indices:", pq_index)
-print("PV bus indices:", pv_index)
-print("Reference bus index:", ref)
-
+    print("Ybus =\n", np.array2string(Ybus, formatter=formatter))
+    print("\nY_fr =\n", np.array2string(Y_fr, formatter=formatter))
+    print("\nY_to =\n", np.array2string(Y_to, formatter=formatter))
+    print("\nBranch from indices:", br_f)
+    print("Branch to indices:", br_t)
+    print("\nBus codes:", buscode)
+    print("Bus labels:", bus_labels)
+    print("\nLoad vector S_LD (pu):", np.array2string(S_LD, formatter=formatter))
+    print("MVA Base:", f"{MVA_base:.3f}")
+    print("Initial Voltages V0:", np.array2string(V0, formatter=formatter))
+    print("PQ bus indices:", pq_index)
+    print("PV bus indices:", pv_index)
+    print("Reference bus index:", ref)
