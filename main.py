@@ -1,5 +1,4 @@
 def main():
-    import numpy as np
     import LoadNetworkData as ld
     from PowerFlow_46705 import PowerFlowNewton, DisplayResults
     

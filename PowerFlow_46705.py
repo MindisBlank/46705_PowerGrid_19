@@ -7,7 +7,6 @@ How to carry out Power Flow in a new *.py file?
 See the example in table 1 in the assignment text
 """
 import numpy as np
-import LoadNetworkData as load
 from logger import log_function, setup_logger
 
 setup_logger()
@@ -98,8 +97,8 @@ def calculate_F(Ybus,Sbus,V,pv_index,pq_index):
             [ ΔP for all PV buses and PQ buses, ΔQ for all PQ buses ]
     """
     # Calculate the injected complex power based on current voltage estimate
-    I = Ybus @ V
-    S_calc = V * np.conjugate(I)
+    bus_current = Ybus @ V
+    S_calc = V * np.conjugate(bus_current)
     
     # Separate specified and calculated active and reactive powers
     P_spec = Sbus.real
