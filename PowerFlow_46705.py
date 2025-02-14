@@ -6,13 +6,14 @@ carry out Power Flow calculations in python.
 How to carry out Power Flow in a new *.py file? 
 See the example in table 1 in the assignment text
 """
-from datetime import datetime
-import os
 import numpy as np
-from loguru import logger
 import LoadNetworkData as load
+from logger import log_function, setup_logger
+
+setup_logger()
 
 # 1. the PowerFlowNewton() function
+@log_function
 def PowerFlowNewton(Ybus, Sbus, V0, pv_index, pq_index, max_iter, err_tol, print_progress=True, debug=False):
     """
     Solve the power flow equations using the Newton-Raphson method.
@@ -35,15 +36,6 @@ def PowerFlowNewton(Ybus, Sbus, V0, pv_index, pq_index, max_iter, err_tol, print
             success (int): 1 if the solution converged, 0 otherwise.
             n (int): Number of iterations used.
     """
-    # Set up logger if debugging is enabled
-    if debug:
-        if not os.path.exists("Logs"):
-            os.makedirs("Logs")
-        log_filename = os.path.join("Logs", "PowerFlow" + datetime.now().strftime("%d_%m_%y_%H_%M") + ".log")
-        logger.add(log_filename, level="DEBUG")
-        logger.debug("Starting PowerFlowNewton()")
-        logger.debug(f"Inputs: Ybus={Ybus}, Sbus={Sbus}, V0={V0}, pv_index={pv_index}, pq_index={pq_index}, max_iter={max_iter}, err_tol={err_tol}")
-
     # Initialization of the status flag and iteration counter
     success = 0
     n = 0
@@ -54,69 +46,27 @@ def PowerFlowNewton(Ybus, Sbus, V0, pv_index, pq_index, max_iter, err_tol, print
         print(' --------- ---------------------------')
     
     # Determine mismatch between initial guess and specified power injections
-    if debug:
-        logger.debug("Calling calculate_F()")
-
+    
     F = calculate_F(Ybus, Sbus, V, pv_index, pq_index)
 
-    if debug:
-        logger.debug(f"calculate_F() output: F = {F}")
     # Check if the desired tolerance is reached
-    if debug:
-        logger.debug("Calling CheckTolerance()")
     success = CheckTolerance(F, n, err_tol, print_progress)
-    if debug:
-        logger.debug(f"CheckTolerance() output: success = {success} at iteration {n}")
     # Start the Newton-Raphson iteration loop
     while (not success) and (n < max_iter):
-        n += 1  # Increment iteration counter
-        if debug:
-            logger.debug(f"Starting iteration {n}")        
-        # Compute derivatives and generate the Jacobian matrix
-        if debug:
-            logger.debug("Calling generate_Derivatives()")
+        n += 1
         J_dS_dVm, J_dS_dTheta = generate_Derivatives(Ybus, V)
-        if debug:
-            logger.debug(f"generate_Derivatives() outputs: J_dS_dVm shape = {J_dS_dVm.shape}, J_dS_dTheta shape = {J_dS_dTheta.shape}")
-
-        if debug:
-            logger.debug("Calling generate_Jacobian()")
         J = generate_Jacobian(J_dS_dVm, J_dS_dTheta, pv_index, pq_index)
-        if debug:
-            logger.debug(f"generate_Jacobian() output: J shape = {J.shape}")
-        # Compute the update step dx
         dx = np.linalg.solve(J, F)
-        if debug:
-            logger.debug(f"Solved update dx: {dx}")
-        # Update voltages and re-calculate mismatch F
-        if debug:
-            logger.debug("Calling Update_Voltages()")
         V = Update_Voltages(dx, V, pv_index, pq_index)
-        if debug:
-            logger.debug(f"Update_Voltages() output: V = {V}")
-
-        if debug:
-            logger.debug("Calling calculate_F() again")
         F = calculate_F(Ybus, Sbus, V, pv_index, pq_index)
-        if debug:
-            logger.debug(f"Updated mismatch F: {F}")
-        # Check if the updated solution meets the tolerance
         success = CheckTolerance(F, n, err_tol, print_progress)
-        if debug:
-            logger.debug(f"CheckTolerance() output at iteration {n}: success = {success}")
     # Display convergence message if required
     if success:
         if print_progress:
             print('The Newton-Raphson Power Flow Converged in %d iterations!' % n)
-        if debug:
-            logger.debug(f"PowerFlowNewton() converged in {n} iterations.")
     else:
         if print_progress:
             print('No Convergence !!!\nStopped after %d iterations without solution...' % n)
-        if debug:
-            logger.debug(f"PowerFlowNewton() did not converge after {n} iterations.")
-    if debug:
-        logger.debug(f"Final output: V = {V}, success = {success}, iterations = {n}")
     return V, success, n
 
 
@@ -202,151 +152,80 @@ def CheckTolerance(F, n, err_tol, print_progress=True):
 # 4. the generate_Derivatives() function
 def generate_Derivatives(Ybus, V):
     """
-    Calculate the partial derivatives of the active and reactive power injections
-    with respect to voltage magnitude and angle.
-
-    The power injections are given by:
-        P_i = sum_j [ Vm_i Vm_j (G_ij cos(θ_i-θ_j) + B_ij sin(θ_i-θ_j)) ]
-        Q_i = sum_j [ Vm_i Vm_j (G_ij sin(θ_i-θ_j) - B_ij cos(θ_i-θ_j)) ]
-
-    The derivatives are:
-      For i ≠ j:
-        dP_i/dVm_j = Vm_i (G_ij cos(θ_i-θ_j) + B_ij sin(θ_i-θ_j))
-        dP_i/dθ_j = Vm_i Vm_j ( -G_ij sin(θ_i-θ_j) + B_ij cos(θ_i-θ_j) )
-        dQ_i/dVm_j = Vm_i (G_ij sin(θ_i-θ_j) - B_ij cos(θ_i-θ_j))
-        dQ_i/dθ_j = -Vm_i Vm_j (G_ij cos(θ_i-θ_j) + B_ij sin(θ_i-θ_j))
-      For i = j:
-        dP_i/dVm_i = 2 Vm_i G_ii + sum_{j≠i} Vm_j (G_ij cos(θ_i-θ_j) + B_ij sin(θ_i-θ_j))
-        dP_i/dθ_i = -sum_{j≠i} Vm_i Vm_j ( -G_ij sin(θ_i-θ_j) + B_ij cos(θ_i-θ_j) )
-        dQ_i/dVm_i = -2 Vm_i B_ii + sum_{j≠i} Vm_j (G_ij sin(θ_i-θ_j) - B_ij cos(θ_i-θ_j))
-        dQ_i/dθ_i = -sum_{j≠i} Vm_i Vm_j (G_ij cos(θ_i-θ_j) + B_ij sin(θ_i-θ_j))
-
+    Calculates the derivatives of the complex power S = V · conj(I) with respect
+    to the voltage magnitude and voltage angle.
+    
+    Using the formulas:
+      dS/dV = diag(V/|V|) · (diag(Ybus.dot(V)))∗ + diag(V) · (Ybus.dot(diag(V/|V|)))∗
+      dS/dθ = j · diag(V) · (diag(Ybus.dot(V)) - Ybus.dot(diag(V)))∗
+    
+    Parameters:
+        Ybus (ndarray): N×N bus admittance matrix.
+        V (ndarray): N×1 complex voltage vector.
+    
     Returns:
-        J_dS_dVm: (2N x N) matrix containing [dP/dVm; dQ/dVm]
-        J_dS_dTheta: (2N x N) matrix containing [dP/dθ; dQ/dθ]
+        J_dS_dVm (ndarray): N×N complex matrix of derivatives of S with respect to voltage magnitude.
+        J_dS_dTheta (ndarray): N×N complex matrix of derivatives of S with respect to voltage angle.
     """
-    N = len(V)
-    Vm = np.abs(V)
-    theta = np.angle(V)
-    G = Ybus.real
-    B = Ybus.imag
+    # Create a diagonal matrix of V/|V|
+    D = np.diag(V / np.abs(V))
+    
+    # Compute Ybus*V and its conjugate diagonal part
+    YV = Ybus.dot(V)
+    D_YV = np.diag(YV.conj())
+    
+    # First term: diag(V/|V|) * diag(Ybus*V)*
+    term1 = D.dot(D_YV)
+    
+    # Second term: diag(V) * (Ybus.dot(diag(V/|V|)))*
+    term2 = np.diag(V).dot(Ybus.dot(np.diag(V / np.abs(V))).conj())
+    
+    J_dS_dVm = term1 + term2
 
-    # Initialize derivative matrices
-    dP_dVm = np.zeros((N, N))
-    dP_dTheta = np.zeros((N, N))
-    dQ_dVm = np.zeros((N, N))
-    dQ_dTheta = np.zeros((N, N))
-
-    for i in range(N):
-        for j in range(N):
-            if i == j:
-                # Diagonal elements
-                # dP/dVm
-                sum_term_P = 0
-                sum_term_Q = 0
-                for k in range(N):
-                    if k != i:
-                        angle_diff = theta[i] - theta[k]
-                        sum_term_P += Vm[k] * (G[i, k] * np.cos(angle_diff) + B[i, k] * np.sin(angle_diff))
-                        sum_term_Q += Vm[k] * (G[i, k] * np.sin(angle_diff) - B[i, k] * np.cos(angle_diff))
-                dP_dVm[i, i] = 2 * Vm[i] * G[i, i] + sum_term_P
-                dQ_dVm[i, i] = -2 * Vm[i] * B[i, i] + sum_term_Q
-
-                # dP/dTheta
-                sum_term = 0
-                for k in range(N):
-                    if k != i:
-                        angle_diff = theta[i] - theta[k]
-                        sum_term += Vm[i] * Vm[k] * (-G[i, k] * np.sin(angle_diff) + B[i, k] * np.cos(angle_diff))
-                dP_dTheta[i, i] = sum_term  # Note: this sum is negative of the off-diagonals
-                # dQ/dTheta
-                sum_term = 0
-                for k in range(N):
-                    if k != i:
-                        angle_diff = theta[i] - theta[k]
-                        sum_term += -Vm[i] * Vm[k] * (G[i, k] * np.cos(angle_diff) + B[i, k] * np.sin(angle_diff))
-                dQ_dTheta[i, i] = sum_term
-
-            else:
-                angle_diff = theta[i] - theta[j]
-                # Off-diagonal elements
-                dP_dVm[i, j] = Vm[i] * (G[i, j] * np.cos(angle_diff) + B[i, j] * np.sin(angle_diff))
-                dP_dTheta[i, j] = Vm[i] * Vm[j] * (-G[i, j] * np.sin(angle_diff) + B[i, j] * np.cos(angle_diff))
-                dQ_dVm[i, j] = Vm[i] * (G[i, j] * np.sin(angle_diff) - B[i, j] * np.cos(angle_diff))
-                dQ_dTheta[i, j] = -Vm[i] * Vm[j] * (G[i, j] * np.cos(angle_diff) + B[i, j] * np.sin(angle_diff))
-
-    # Assemble derivative matrices into two blocks:
-    # First N rows correspond to active power derivatives, next N rows to reactive power.
-    J_dS_dVm = np.vstack((dP_dVm, dQ_dVm))
-    J_dS_dTheta = np.vstack((dP_dTheta, dQ_dTheta))
+    # For the derivative with respect to voltage angles:
+    # dS/dθ = j·diag(V)·( diag(Ybus*V) - Ybus.dot(diag(V)) )*
+    diff_term = np.diag(Ybus.dot(V)) - Ybus.dot(np.diag(V))
+    J_dS_dTheta = 1j * np.diag(V).dot(diff_term.conj())
 
     return J_dS_dVm, J_dS_dTheta
 
 
-
-# 5. the generate_Jacobian() function
 def generate_Jacobian(J_dS_dVm, J_dS_dTheta, pv_index, pq_index):
     """
-    Assemble the Jacobian matrix for the Newton-Raphson power flow.
-
-    The Jacobian is constructed from the partial derivatives:
-        J_dS_dTheta: 2N x N matrix, where:
-            - The first N rows are dP/dθ (active power derivatives with respect to angles)
-            - The last N rows are dQ/dθ (reactive power derivatives with respect to angles)
-        J_dS_dVm: 2N x N matrix, where:
-            - The first N rows are dP/dV (active power derivatives with respect to voltage magnitudes)
-            - The last N rows are dQ/dV (reactive power derivatives with respect to voltage magnitudes)
-
-    The mismatch vector F is arranged as:
-        F = [ ΔP (for all PV and PQ buses); ΔQ (for PQ buses) ]
+    Assembles the Jacobian matrix for the Newton-Raphson power flow using the derivatives.
     
-    Therefore, the Jacobian is partitioned as:
-        J = [ J1   J2 ]
-            [ J3   J4 ]
+    The mismatch vector F is constructed as:
+        F = [ ΔP (for PV buses); ΔP (for PQ buses); ΔQ (for PQ buses) ]
+    Hence, the Jacobian is partitioned as:
+        J = [ J_11    J_12 ]
+            [ J_21    J_22 ]
     where:
-        J1 = dP/dθ for PV and PQ buses (rows from first block, columns for active buses)
-        J2 = dP/dV for PQ buses (rows from first block, columns for PQ buses)
-        J3 = dQ/dθ for PQ buses (rows from second block, columns for active buses)
-        J4 = dQ/dV for PQ buses (rows from second block, columns for PQ buses)
+        J_11 = Real( dS/dθ ) at all PV and PQ buses:  rows = pv_index ∪ pq_index, columns = pv_index ∪ pq_index.
+        J_12 = Real( dS/dV ) at PV and PQ buses for PQ columns: rows = pv_index ∪ pq_index, columns = pq_index.
+        J_21 = Imag( dS/dθ ) at PQ buses: rows = pq_index, columns = pv_index ∪ pq_index.
+        J_22 = Imag( dS/dV ) at PQ buses: rows = pq_index, columns = pq_index.
     
     Parameters:
-        J_dS_dVm (ndarray): 2N x N matrix of derivatives with respect to voltage magnitude.
-        J_dS_dTheta (ndarray): 2N x N matrix of derivatives with respect to voltage angle.
-        pv_index (list or ndarray): Indices of PV buses.
-        pq_index (list or ndarray): Indices of PQ buses.
+        J_dS_dVm (ndarray): N×N complex matrix of derivatives of S with respect to voltage magnitude.
+        J_dS_dTheta (ndarray): N×N complex matrix of derivatives of S with respect to voltage angle.
+        pv_index (array_like): Indices of PV buses.
+        pq_index (array_like): Indices of PQ buses.
     
     Returns:
         J (ndarray): The assembled Jacobian matrix.
     """
-    # Combine PV and PQ indices for the active power mismatch part.
-    active_index = np.concatenate((pv_index, pq_index))
+    # Combine PV and PQ indices for the active power part
+    pvpq_ind = np.concatenate((pv_index, pq_index))
     
-    # Total number of buses
-    N = J_dS_dVm.shape[1]
+    # Extract sub-matrices:
+    J_11 = np.real(J_dS_dTheta[np.ix_(pvpq_ind, pvpq_ind)])
+    J_12 = np.real(J_dS_dVm[np.ix_(pvpq_ind, pq_index)])
+    J_21 = np.imag(J_dS_dTheta[np.ix_(pq_index, pvpq_ind)])
+    J_22 = np.imag(J_dS_dVm[np.ix_(pq_index, pq_index)])
     
-    # Extract submatrices from the derivatives.
-    # For active power mismatches:
-    # J1: dP/dθ for active buses (from first N rows of J_dS_dTheta)
-    J1_full = J_dS_dTheta[:N, :]  # shape: N x N
-    J1 = J1_full[np.ix_(active_index, active_index)]
-    
-    # J2: dP/dV for PQ buses (from first N rows of J_dS_dVm)
-    J2_full = J_dS_dVm[:N, :]  # shape: N x N
-    J2 = J2_full[np.ix_(active_index, pq_index)]
-    
-    # For reactive power mismatches:
-    # J3: dQ/dθ for PQ buses (from last N rows of J_dS_dTheta)
-    J3_full = J_dS_dTheta[N:, :]  # shape: N x N
-    J3 = J3_full[np.ix_(pq_index, active_index)]
-    
-    # J4: dQ/dV for PQ buses (from last N rows of J_dS_dVm)
-    J4_full = J_dS_dVm[N:, :]  # shape: N x N
-    J4 = J4_full[np.ix_(pq_index, pq_index)]
-    
-    # Assemble the full Jacobian using block concatenation.
-    top = np.hstack((J1, J2))
-    bottom = np.hstack((J3, J4))
-    J = np.vstack((top, bottom))
+    # Assemble the Jacobian as a block matrix
+    J = np.block([[J_11, J_12],
+                  [J_21, J_22]])
     
     return J
 
@@ -431,7 +310,6 @@ def DisplayResults(V, lnd):
         Ybus, Y_fr, Y_to, br_f, br_t, buscode, bus_labels, S_LD, 
         MVA_base, V0, pq_index, pv_index, ref
     """
-    import numpy as np
 
     # Unpack network data from lnd
     (Ybus, Y_fr, Y_to, br_f, br_t, buscode, bus_labels,Sbus, S_LD,

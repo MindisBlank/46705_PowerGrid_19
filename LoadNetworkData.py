@@ -1,10 +1,10 @@
 import numpy as np
 import ReadNetworkData as rd
-from datetime import datetime
-import os
-from loguru import logger
+from logger import log_function, setup_logger
 
 
+setup_logger()
+@log_function
 def load_network_data(filename, debug=False):
     """
     Reads a network data file and constructs the network model.
@@ -26,16 +26,7 @@ def load_network_data(filename, debug=False):
     Returns:
         tuple: (Ybus, Y_fr, Y_to, br_f, br_t, buscode, bus_labels, Sbus, S_LD,
                 MVA_base, V0, pq_index, pv_index, ref)
-    """
-    module_name = "LoadNetworkData"
-    if debug:
-        if not os.path.exists("Logs"):
-            os.makedirs("Logs")
-        log_filename = os.path.join("Logs", datetime.now().strftime("%d_%m_%y_%H-%M") + ".log")
-        logger.remove()  # Remove default stdout handler
-        logger.add(log_filename, level="DEBUG")
-        logger.debug(f"[{module_name}] Called load_network_data() with filename: {filename}")
-    
+    """   
     # Declare globals if needed (Sbus will now be computed)
     global Ybus, Sbus, V0, buscode, ref, pq_index, pv_index
     global Y_fr, Y_to, br_f, br_t, S_LD, ind_to_bus, bus_to_ind
@@ -45,14 +36,7 @@ def load_network_data(filename, debug=False):
     (bus_data, load_data, gen_data, line_data, tran_data, mva_base,
      bus_to_ind, ind_to_bus) = rd.read_network_data_from_file(filename)
     MVA_base = mva_base
-    if debug:
-        logger.debug(f"[{module_name}] rd.read_network_data_from_file() returned:")
-        logger.debug(f"   bus_data length: {len(bus_data)}")
-        logger.debug(f"   load_data length: {len(load_data)}")
-        logger.debug(f"   gen_data length: {len(gen_data)}")
-        logger.debug(f"   line_data length: {len(line_data)}")
-        logger.debug(f"   tran_data length: {len(tran_data)}")
-    
+
     # Determine sizes for arrays
     num_buses = len(bus_data)
     num_lines = len(line_data)
@@ -86,28 +70,11 @@ def load_network_data(filename, debug=False):
         else:
             Sbus[i] = S_gen[i] - S_LD[i]
     
-    if debug:
-        logger.debug(f"[{module_name}] Computed S_gen: {S_gen}")
-        logger.debug(f"[{module_name}] Computed S_LD: {S_LD}")
-        logger.debug(f"[{module_name}] Computed Sbus: {Sbus}")
-    
     pq_index, pv_index, ref = _classify_bus_types(buscode)
     
     # Optionally convert lists to numpy arrays
     pq_index = np.array(pq_index)
     pv_index = np.array(pv_index)
-    
-    if debug:
-        logger.debug(f"[{module_name}] Final outputs:")
-        logger.debug(f"   Ybus shape: {Ybus.shape}")
-        logger.debug(f"   Y_fr shape: {Y_fr.shape}")
-        logger.debug(f"   Y_to shape: {Y_to.shape}")
-        logger.debug(f"   V0 length: {len(V0)}")
-        logger.debug(f"   MVA_base: {MVA_base}")
-        logger.debug(f"   pq_index: {pq_index}")
-        logger.debug(f"   pv_index: {pv_index}")
-        logger.debug(f"   Sbus: {Sbus}")
-        logger.debug(f"[{module_name}] load_network_data() completed successfully.")
     
     return (Ybus, Y_fr, Y_to, br_f, br_t, buscode, bus_labels, Sbus, S_LD,
             MVA_base, V0, pq_index, pv_index, ref)
@@ -243,31 +210,3 @@ def _classify_bus_types(buscode):
     return pq_index, pv_index, ref
 
 
-# --- Testing block ---
-if __name__ == '__main__':
-    filename = 'testsystem.txt'
-    data = load_network_data(filename, debug=True)
-
-    (Ybus, Y_fr, Y_to, br_f, br_t, buscode, bus_labels, Sbus, S_LD,
-     MVA_base, V0, pq_index, pv_index, ref) = data
-
-    # Formatter for printing floating-point and complex numbers
-    formatter = {
-        'float_kind': lambda x: f"{x:.3f}",
-        'complex_kind': lambda x: f"{x.real:.3f}{'+' if x.imag >= 0 else ''}{x.imag:.3f}j"
-    }
-
-    print("Ybus =\n", np.array2string(Ybus, formatter=formatter))
-    print("\nY_fr =\n", np.array2string(Y_fr, formatter=formatter))
-    print("\nY_to =\n", np.array2string(Y_to, formatter=formatter))
-    print("\nBranch from indices:", br_f)
-    print("Branch to indices:", br_t)
-    print("\nBus codes:", buscode)
-    print("Bus labels:", bus_labels)
-    print("\nSbus (pu) =", np.array2string(Sbus, formatter=formatter))
-    print("\nLoad vector S_LD (pu):", np.array2string(S_LD, formatter=formatter))
-    print("MVA Base:", f"{MVA_base:.3f}")
-    print("Initial Voltages V0:", np.array2string(V0, formatter=formatter))
-    print("PQ bus indices:", pq_index)
-    print("PV bus indices:", pv_index)
-    print("Reference bus index:", ref)
