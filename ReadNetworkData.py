@@ -3,8 +3,6 @@ The ReadNetworkData library contains a function that reads in network data
 stored in a external *.txt file. Used for assignemnt work in the course
 46705 - Power Grid Analysis
 """
-
-import numpy as np
 import re
 import csv
 
