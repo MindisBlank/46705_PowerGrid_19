@@ -37,6 +37,18 @@ def load_network_data(filename, debug=False):
      bus_to_ind, ind_to_bus) = rd.read_network_data_from_file(filename)
     MVA_base = mva_base
 
+    # Extract MVA ratings for generators , branches and transformers
+    Gen_rating = [(gen[0], gen[1]) for gen in gen_data]
+    Br_rating = [(br[0],br[1],br[2],br[6]) for br in line_data]
+    Tran_rating = [(tran[0],tran[1],tran[2],tran[7]) for tran in tran_data]
+
+    
+
+    #BUS number for printing results used to append corrertly
+    BUS_NR = [bus[0] for bus in bus_data]
+    FROM_BUS_AND_TO_BUS = [(line[0],line[1],line[2]) for line in line_data]
+    FROM_BUS_AND_TO_BUS += [(tran[0],tran[1],tran[2]) for tran in tran_data]
+
     # Determine sizes for arrays
     num_buses = len(bus_data)
     num_lines = len(line_data)
@@ -77,7 +89,7 @@ def load_network_data(filename, debug=False):
     pv_index = np.array(pv_index)
     
     return (Ybus, Y_fr, Y_to, br_f, br_t, buscode, bus_labels, Sbus, S_LD,
-            MVA_base, V0, pq_index, pv_index, ref)
+            MVA_base, V0, pq_index, pv_index, ref, Gen_rating,Br_rating,BUS_NR,FROM_BUS_AND_TO_BUS,Tran_rating)
 
 
 def _process_line_data(line_data, bus_to_ind, Ybus, Y_fr, Y_to, br_f, br_t, branch_counter):
