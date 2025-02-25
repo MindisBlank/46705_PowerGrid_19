@@ -11,7 +11,7 @@ from logger import log_function, setup_logger
 
 setup_logger()
 
-# 1. the PowerFlowNewton() function
+
 @log_function
 def PowerFlowNewton(Ybus, Sbus, V0, pv_index, pq_index, max_iter, err_tol, print_progress=True, debug=False):
     """
@@ -69,8 +69,6 @@ def PowerFlowNewton(Ybus, Sbus, V0, pv_index, pq_index, max_iter, err_tol, print
     return V, success, n
 
 
-
-# 2. the calculate_F() function
 def calculate_F(Ybus,Sbus,V,pv_index,pq_index):
     """
     Calculate the power mismatch vector F.
@@ -123,7 +121,6 @@ def calculate_F(Ybus,Sbus,V,pv_index,pq_index):
     return F
 
 
-# 3. the CheckTolerance() function
 def CheckTolerance(F, n, err_tol, print_progress=True):
     """
     Check whether the current mismatch vector F is within the error tolerance.
@@ -148,7 +145,7 @@ def CheckTolerance(F, n, err_tol, print_progress=True):
     
     return success
 
-# 4. the generate_Derivatives() function
+
 def generate_Derivatives(Ybus, V):
     """
     Calculates the derivatives of the complex power S = V · conj(I) with respect
@@ -229,8 +226,6 @@ def generate_Jacobian(J_dS_dVm, J_dS_dTheta, pv_index, pq_index):
     return J
 
 
-
-# 6. the Update_Voltages() function
 def Update_Voltages(dx, V, pv_index, pq_index):
     """
     Update the bus voltage vector V given the Newton-Raphson update dx.
@@ -394,22 +389,22 @@ def DisplayResults_and_loading(V, lnd):
     """
 
     N = len(V)          # number of buses
-    num_branches = len(lnd.br_f)
+    num_branches = len(lnd.branch_from)
 
     # Create a dictionary for generator ratings keyed by bus label.
     # e.g., {'BUS1HV': rating1, 'BUS2HV': rating2, ...}
-    gen_rating_dict = {bus_label: rating for (bus_label, rating) in lnd.Gen_rating}
+    gen_rating_dict = {bus_label: rating for (bus_label, rating) in lnd.gen_rating}
 
     # Create a dictionary for branch ratings keyed by (from_bus, to_bus) tuple (both 1-based)
-    br_rating_dict = {(fb, tb,id): rating for (fb, tb,id, rating) in lnd.Br_rating}
+    br_rating_dict = {(fb, tb,id): rating for (fb, tb,id, rating) in lnd.branch_rating}
 
     # Create a dictionary for transformer ratings keyed by (from_bus, to_bus) tuple (both 1-based)
-    Trans_rat_dict ={(fb, tb,id): rating for (fb, tb,id, rating) in lnd.Tran_rating}
+    Trans_rat_dict ={(fb, tb,id): rating for (fb, tb,id, rating) in lnd.tran_rating}
 
     # Compute bus injection: S_inj = V * conj(Ybus @ V)
     S_inj = V * np.conjugate(lnd.Ybus @ V)
-    # Compute generation at each bus: S_gen = S_inj + S_LD
-    S_gen = S_inj + lnd.S_LD
+    # Compute generation at each bus: S_gen = S_inj + S_load
+    S_gen = S_inj + lnd.S_load
 
     # Display Bus Results with Generator Loading
     print("=" * 140)
@@ -422,14 +417,14 @@ def DisplayResults_and_loading(V, lnd):
     print(bus_header)
     print("-" * 140)
     for i in range(N):
-        bus_num = lnd.BUS_NR[i]  # bus numbering is 1-based in output
+        bus_num = lnd.bus_numbers[i]  # bus numbering is 1-based in output
         label = lnd.bus_labels[i]
         Vm = np.abs(V[i])
         theta = np.degrees(np.angle(V[i]))
         P_gen = S_gen[i].real
         Q_gen = S_gen[i].imag
-        P_load = lnd.S_LD[i].real
-        Q_load = lnd.S_LD[i].imag
+        P_load = lnd.S_load[i].real
+        Q_load = lnd.S_load[i].imag
 
         # Look up the generator rating using the bus label.
         if bus_num in gen_rating_dict and gen_rating_dict[bus_num] > 0:
@@ -460,13 +455,13 @@ def DisplayResults_and_loading(V, lnd):
     print("-" * 140)
     for i in range(num_branches):
         # Retrieve bus indices (0-based) for branch calculations.
-        from_idx = lnd.br_f[i]
-        to_idx = lnd.br_t[i]
+        from_idx = lnd.branch_from[i]
+        to_idx = lnd.branch_to[i]
         
-        from_bus, to_bus, ID = lnd.FROM_BUS_AND_TO_BUS[i]
+        from_bus, to_bus, ID = lnd.bus_pairs[i]
         
         # Calculate branch flows at the "from" and "to" ends.
-        S_from = V[from_idx] * np.conjugate(np.dot(lnd.Y_fr[i, :], V))
+        S_from = V[from_idx] * np.conjugate(np.dot(lnd.Y_from[i, :], V))
         S_to = V[to_idx] * np.conjugate(np.dot(lnd.Y_to[i, :], V))
         
         # Look up the branch rating using the tuple (from_bus, to_bus)

@@ -1,96 +1,131 @@
 
-def apply_contingency_to_Y_matrices(Ybus, Y_fr, Y_to, fr_ind, to_ind, br_ind, Ybr_mat):
-    # Inputs:
-    # Ybus  : Original bus admittance matrix
-    # Y_fr  : Original branch-from admittance matrix (for line flows)
-    # Y_to  : Original branch-to admittance matrix (for line flows)
-    # fr_ind: From-bus index of the branch
-    # to_ind: To-bus index of the branch
-    # br_ind: Index of the branch in the branch list
-    # Ybr_mat: 2x2 admittance matrix of the branch to be removed
+def apply_contingency_to_Y_matrices(ybus, y_fr, y_to, fr_ind, to_ind, br_ind, ybr_mat):
+    """
+    Apply contingency to Y matrices.
 
+    Parameters:
+        ybus (ndarray): Original bus admittance matrix.
+        y_fr (ndarray): Original branch-from admittance matrix (for line flows).
+        y_to (ndarray): Original branch-to admittance matrix (for line flows).
+        fr_ind (int): From-bus index of the branch.
+        to_ind (int): To-bus index of the branch.
+        br_ind (int): Index of the branch in the branch list.
+        ybr_mat (ndarray): 2x2 admittance matrix of the branch to be removed.
+
+    Returns:
+        tuple: Modified ybus, y_fr, and y_to matrices.
+    """
     # Copy the original matrices to avoid altering them
-    Ybus_mod = Ybus.copy()
-    Y_fr_mod = Y_fr.copy()
-    Y_to_mod = Y_to.copy()
+    ybus_mod = ybus.copy()
+    y_fr_mod = y_fr.copy()
+    y_to_mod = y_to.copy()
 
     # 1. Remove the branch from the bus admittance matrix:
     # Subtract the branch admittance contributions from the appropriate bus entries.
-    Ybus_mod[fr_ind, fr_ind] -= Ybr_mat[0, 0]
-    Ybus_mod[to_ind, to_ind] -= Ybr_mat[1, 1]
-    Ybus_mod[fr_ind, to_ind] -= Ybr_mat[0, 1]
-    Ybus_mod[to_ind, fr_ind] -= Ybr_mat[1, 0]
+    ybus_mod[fr_ind, fr_ind] -= ybr_mat[0, 0]
+    ybus_mod[to_ind, to_ind] -= ybr_mat[1, 1]
+    ybus_mod[fr_ind, to_ind] -= ybr_mat[0, 1]
+    ybus_mod[to_ind, fr_ind] -= ybr_mat[1, 0]
 
     # 2. Remove the branch from the branch flow matrices:
-    # Zero out the row corresponding to the branch in both Y_fr and Y_to.
-    Y_fr_mod[br_ind, :] = 0
-    Y_to_mod[br_ind, :] = 0
+    # Zero out the row corresponding to the branch in both y_fr and y_to.
+    y_fr_mod[br_ind, :] = 0
+    y_to_mod[br_ind, :] = 0
 
-    return Ybus_mod, Y_fr_mod, Y_to_mod
-
-
+    return ybus_mod, y_fr_mod, y_to_mod
 
 
+def system_violations(v, ybus, y_from, y_to, lnd):
+    """
+    Calculate system violations based on voltage, branch flows, and generator outputs.
 
+    Parameters:
+        v (ndarray): Voltage vector.
+        ybus (ndarray): Bus admittance matrix.
+        y_from (ndarray): Branch-from admittance matrix.
+        y_to (ndarray): Branch-to admittance matrix.
+        lnd (object): Network data object containing attributes such as:
+            - branch_from: Array of from-bus indices (0-indexed).
+            - branch_to: Array of to-bus indices (0-indexed).
+            - bus_numbers: List of bus numbers for identification.
+            - bus_pairs: List of (from bus, to bus, branch id) tuples.
+            - S_load: Defined loads on PQ buses.
+            - MVA_base: System base in MVA.
+            - branch_rating: List of branch ratings from line data.
+            - tran_rating: List of transformer ratings.
+            - gen_rating: List of (generator bus, MVA limit) tuples.
+            - v_min: Minimum voltage limits.
+            - v_max: Maximum voltage limits.
 
-def System_violations(V, Ybus, Y_from, Y_to, lnd):
-    # store variables as more convenient names
-    br_f = lnd.br_f              # array of from-bus indices (0-indexed)
-    br_t = lnd.br_t              # array of to-bus indices (0-indexed)
-    BUS_NR = lnd.BUS_NR          # list of bus numbers for identification
-    branch_info = lnd.FROM_BUS_AND_TO_BUS  # list of (from bus, to bus, branch id)
-    
+    Returns:
+        list: A list of violation description strings.
+    """
+    # Store variables with more convenient names
+    br_f = lnd.branch_from         # Array of from-bus indices (0-indexed)
+    br_t = lnd.branch_to           # Array of to-bus indices (0-indexed)
+    bus_nr = lnd.bus_numbers       # List of bus numbers for identification
+    branch_info = lnd.bus_pairs    # List of (from bus, to bus, branch id)
+
     # Calculate line flows and injections
-    S_to = V[br_t] * (Y_to.dot(V)).conj()   # flow into the 'to' end of each branch
-    S_from = V[br_f] * (Y_from.dot(V)).conj() # flow into the 'from' end of each branch
-    S_inj = V * (Ybus.dot(V)).conj()          # net injection at each bus
-    SLD = lnd.S_LD                          # defined loads on PQ buses
-    S_gen = S_inj + SLD                      # generator outputs (net injections plus loads)
+    s_to = v[br_t] * (y_to.dot(v)).conj()     # Flow into the 'to' end of each branch
+    s_from = v[br_f] * (y_from.dot(v)).conj()   # Flow into the 'from' end of each branch
+    s_inj = v * (ybus.dot(v)).conj()            # Net injection at each bus
+    s_ld = lnd.S_load                         # Defined loads on PQ buses
+    s_gen = s_inj + s_ld                      # Generator outputs (net injections plus loads)
 
-    violations = []  # empty list to store descriptions of any violations
+    violations = []  # List to store descriptions of any violations
 
     # 1. Check branch flows for violations
     num_branches = len(br_f)
-    num_lines = len(lnd.Br_rating)  # number of branches from line data
+    num_lines = len(lnd.branch_rating)  # Number of branches from line data
     for i in range(num_branches):
-        #print(lnd.Br_rating[i][3])
-        # Determine branch rating: for the first num_lines branches, use Br_rating;
-        # for remaining branches, use Tran_rating.
+        # Determine branch rating: for the first num_lines branches, use branch_rating;
+        # for remaining branches, use tran_rating.
         if i < num_lines:
-            limit = lnd.Br_rating[i][3]  # tuple structure: (from bus, to bus, ID, MVA rating)
+            limit = lnd.branch_rating[i][3]  # Tuple structure: (from bus, to bus, ID, MVA rating)
         else:
-            limit = lnd.Tran_rating[i - num_lines][3]
-        flow_from = abs(S_from[i])*lnd.MVA_base
-        flow_to = abs(S_to[i])*lnd.MVA_base
+            limit = lnd.tran_rating[i - num_lines][3]
+
+        flow_from = abs(s_from[i]) * lnd.MVA_base
+        flow_to = abs(s_to[i]) * lnd.MVA_base
         branch_id = branch_info[i][2]
         from_bus = branch_info[i][0]
         to_bus = branch_info[i][1]
+
         if flow_from > limit:
-            violations.append("Branch {} (bus {} -> bus {}) from-end flow violation: {:.2f} MVA > limit {:.2f} MVA".format(
-                branch_id, from_bus, to_bus, flow_from, limit))
+            violations.append(
+                "Branch {} (bus {} -> bus {}) from-end flow violation: "
+                "{:.2f} MVA > limit {:.2f} MVA".format(
+                    branch_id, from_bus, to_bus, flow_from, limit
+                )
+            )
         if flow_to > limit:
-            violations.append("Branch {} (bus {} -> bus {}) to-end flow violation: {:.2f} MVA > limit {:.2f} MVA".format(
-                branch_id, from_bus, to_bus, flow_to, limit))
-    
+            violations.append(
+                "Branch {} (bus {} -> bus {}) to-end flow violation: "
+                "{:.2f} MVA > limit {:.2f} MVA".format(
+                    branch_id, from_bus, to_bus, flow_to, limit
+                )
+            )
+
     # 2. Check generator outputs for violations
-    # Each element in Gen_rating is a tuple: (bus number, MVA rating)
-    for (gen_bus, gen_limit) in lnd.Gen_rating:
+    for gen_bus, gen_limit in lnd.gen_rating:
         try:
-            bus_idx = BUS_NR.index(gen_bus)
+            bus_idx = bus_nr.index(gen_bus)
         except ValueError:
-            continue  # skip if the generator bus is not found
-        gen_output  = abs(S_gen[bus_idx])* lnd.MVA_base
-        if gen_output  > gen_limit:
-            violations.append("Generator at bus {} violation: output {:.2f} MVA > limit {:.2f} MVA".format(
-                gen_bus, gen_output , gen_limit))
-    
-    # 3. Check bus voltages (assumed limits: 0.9 pu to 1.1 pu)
-    for i in range(len(V)):
-        voltage = abs(V[i])
+            continue  # Skip if the generator bus is not found
+        gen_output = abs(s_gen[bus_idx]) * lnd.MVA_base
+        if gen_output > gen_limit:
+            violations.append(
+                "Generator at bus {} violation: output {:.2f} MVA > limit {:.2f} MVA"
+                .format(gen_bus, gen_output, gen_limit)
+            )
+
+    # 3. Check voltage limits for violations
+    for i in range(len(v)):
+        voltage = abs(v[i])
         if voltage < lnd.v_min[i] or voltage > lnd.v_max[i]:
-            violations.append("Voltage violation at bus {}: {:.2f} pu".format(
-                BUS_NR[i], voltage))
-    
+            violations.append(
+                "Voltage violation at bus {}: {:.2f} pu".format(bus_nr[i], voltage)
+            )
+
     return violations
-
-
