@@ -305,17 +305,14 @@ def DisplayResults(V, lnd):
         MVA_base, V0, pq_index, pv_index, ref
     """
 
-    # Unpack network data from lnd
-    (Ybus, Y_fr, Y_to, br_f, br_t, buscode, bus_labels, Sbus, S_LD,
-            MVA_base, V0, pq_index, pv_index, ref, Gen_rating,Br_rating,BUS_NR) = lnd
 
     N = len(V)  # number of buses
-    num_branches = len(br_f)
+    num_branches = len(lnd.br_f)
 
     # Compute bus injection using the network equation: S_inj = V * conj(Ybus @ V)
-    S_inj = V * np.conjugate(Ybus @ V)
+    S_inj = V * np.conjugate(lnd.Ybus @ V)
     # Compute generation assuming S_inj = S_gen - S_LD  =>  S_gen = S_inj + S_LD
-    S_gen = S_inj + S_LD
+    S_gen = S_inj + lnd.S_LD
 
     # Header for Bus Results
     print("=" * 80)
@@ -329,13 +326,13 @@ def DisplayResults(V, lnd):
     # Loop over buses
     for i in range(N):
         bus_num = i + 1  # if bus numbering is sequential
-        label = bus_labels[i]
+        label = lnd.bus_labels[i]
         Vm = np.abs(V[i])
         theta = np.degrees(np.angle(V[i]))
         P_gen = S_gen[i].real
         Q_gen = S_gen[i].imag
-        P_load = S_LD[i].real
-        Q_load = S_LD[i].imag
+        P_load = lnd.S_LD[i].real
+        Q_load = lnd.S_LD[i].imag
         line = ("{:<5d} {:<10} {:>8.3f} {:>8.2f} {:>9.3f} {:>9.3f} {:>9.3f} {:>9.3f}"
                 .format(bus_num, label, Vm, theta, P_gen, Q_gen, P_load, Q_load))
         print(line)
@@ -352,12 +349,12 @@ def DisplayResults(V, lnd):
     print("-" * 70)
     for i in range(num_branches):
         # Bus indices for this branch (in our array space)
-        from_bus = br_f[i]
-        to_bus = br_t[i]
+        from_bus = lnd.br_f[i]
+        to_bus = lnd.br_t[i]
         # Calculate injection at the "from" end: S_from = V[from] * conj(Y_fr[i,:] @ V)
-        S_from = V[from_bus] * np.conjugate(np.dot(Y_fr[i, :], V))
+        S_from = V[from_bus] * np.conjugate(np.dot(lnd.Y_fr[i, :], V))
         # Similarly, injection at the "to" end: S_to = V[to_bus] * np.conjugate(np.dot(Y_to[i, :], V))
-        S_to = V[to_bus] * np.conjugate(np.dot(Y_to[i, :], V))
+        S_to = V[to_bus] * np.conjugate(np.dot(lnd.Y_to[i, :], V))
         line = ("{:<5d} {:<5d} {:<5d} {:>9.3f} {:>9.3f} {:>9.3f} {:>9.3f}"
                 .format(i+1, from_bus+1, to_bus+1,
                         S_from.real, S_from.imag, S_to.real, S_to.imag))
@@ -398,26 +395,25 @@ def DisplayResults_and_loading(V, lnd):
     import numpy as np
 
     # Unpack network data from lnd
-    (Ybus, Y_fr, Y_to, br_f, br_t, buscode, bus_labels, Sbus, S_LD,
-            MVA_base, V0, pq_index, pv_index, ref, Gen_rating,Br_rating,BUS_NR,FROM_BUS_AND_TO_BUS,Tran_rating) = lnd
+   
 
     N = len(V)          # number of buses
-    num_branches = len(br_f)
+    num_branches = len(lnd.br_f)
 
     # Create a dictionary for generator ratings keyed by bus label.
     # e.g., {'BUS1HV': rating1, 'BUS2HV': rating2, ...}
-    gen_rating_dict = {bus_label: rating for (bus_label, rating) in Gen_rating}
+    gen_rating_dict = {bus_label: rating for (bus_label, rating) in lnd.Gen_rating}
 
     # Create a dictionary for branch ratings keyed by (from_bus, to_bus) tuple (both 1-based)
-    br_rating_dict = {(fb, tb,id): rating for (fb, tb,id, rating) in Br_rating}
+    br_rating_dict = {(fb, tb,id): rating for (fb, tb,id, rating) in lnd.Br_rating}
 
     # Create a dictionary for transformer ratings keyed by (from_bus, to_bus) tuple (both 1-based)
-    Trans_rat_dict ={(fb, tb,id): rating for (fb, tb,id, rating) in Tran_rating}
+    Trans_rat_dict ={(fb, tb,id): rating for (fb, tb,id, rating) in lnd.Tran_rating}
 
     # Compute bus injection: S_inj = V * conj(Ybus @ V)
-    S_inj = V * np.conjugate(Ybus @ V)
+    S_inj = V * np.conjugate(lnd.Ybus @ V)
     # Compute generation at each bus: S_gen = S_inj + S_LD
-    S_gen = S_inj + S_LD
+    S_gen = S_inj + lnd.S_LD
 
     # Display Bus Results with Generator Loading
     print("=" * 140)
@@ -430,19 +426,19 @@ def DisplayResults_and_loading(V, lnd):
     print(bus_header)
     print("-" * 140)
     for i in range(N):
-        bus_num = BUS_NR[i]  # bus numbering is 1-based in output
-        label = bus_labels[i]
+        bus_num = lnd.BUS_NR[i]  # bus numbering is 1-based in output
+        label = lnd.bus_labels[i]
         Vm = np.abs(V[i])
         theta = np.degrees(np.angle(V[i]))
         P_gen = S_gen[i].real
         Q_gen = S_gen[i].imag
-        P_load = S_LD[i].real
-        Q_load = S_LD[i].imag
+        P_load = lnd.S_LD[i].real
+        Q_load = lnd.S_LD[i].imag
 
         # Look up the generator rating using the bus label.
         if bus_num in gen_rating_dict and gen_rating_dict[bus_num] > 0:
             # Convert the generator rating from MVA to per unit.
-            gen_rating_pu = gen_rating_dict[bus_num] / MVA_base
+            gen_rating_pu = gen_rating_dict[bus_num] / lnd.MVA_base
             gen_loading_pct = 100 * (np.abs(S_gen[i]) / gen_rating_pu)
             #print(f"gen_rating_pu: {gen_rating_pu}")
         else:
@@ -468,24 +464,24 @@ def DisplayResults_and_loading(V, lnd):
     print("-" * 140)
     for i in range(num_branches):
         # Retrieve bus indices (0-based) for branch calculations.
-        from_idx = br_f[i]
-        to_idx = br_t[i]
+        from_idx = lnd.br_f[i]
+        to_idx = lnd.br_t[i]
         
-        from_bus, to_bus, ID = FROM_BUS_AND_TO_BUS[i]
+        from_bus, to_bus, ID = lnd.FROM_BUS_AND_TO_BUS[i]
         
         # Calculate branch flows at the "from" and "to" ends.
-        S_from = V[from_idx] * np.conjugate(np.dot(Y_fr[i, :], V))
-        S_to = V[to_idx] * np.conjugate(np.dot(Y_to[i, :], V))
+        S_from = V[from_idx] * np.conjugate(np.dot(lnd.Y_fr[i, :], V))
+        S_to = V[to_idx] * np.conjugate(np.dot(lnd.Y_to[i, :], V))
         
         # Look up the branch rating using the tuple (from_bus, to_bus)
         if (from_bus, to_bus,ID) in br_rating_dict and br_rating_dict[(from_bus, to_bus,ID)] > 0:
             # Convert branch rating from MVA to per unit.
-            br_rating_pu = br_rating_dict[(from_bus, to_bus,ID)] / MVA_base
+            br_rating_pu = br_rating_dict[(from_bus, to_bus,ID)] / lnd.MVA_base
             load_from_pct = 100 * (np.abs(S_from) / br_rating_pu)
             load_to_pct   = 100 * (np.abs(S_to) / br_rating_pu)
         elif (from_bus,to_bus,ID)in Trans_rat_dict and Trans_rat_dict[(from_bus,to_bus,ID)] > 0:
             # Convert branch rating from MVA to per unit.
-            trans_rating_pu = Trans_rat_dict[(from_bus, to_bus,ID)] / MVA_base
+            trans_rating_pu = Trans_rat_dict[(from_bus, to_bus,ID)] / lnd.MVA_base
             load_from_pct = 100 * (np.abs(S_from) / trans_rating_pu)
             load_to_pct   = 100 * (np.abs(S_to) / trans_rating_pu)
         else:

@@ -4,6 +4,28 @@ from logger import log_function, setup_logger
 
 
 setup_logger()
+class NetworkData:
+    def __init__(self, Ybus, Y_fr, Y_to, br_f, br_t, buscode, bus_labels, Sbus, S_LD,
+                 MVA_base, V0, pq_index, pv_index, ref, Gen_rating, Br_rating, BUS_NR, FROM_BUS_AND_TO_BUS, Tran_rating):
+        self.Ybus = Ybus
+        self.Y_fr = Y_fr
+        self.Y_to = Y_to
+        self.br_f = br_f
+        self.br_t = br_t
+        self.buscode = buscode
+        self.bus_labels = bus_labels
+        self.Sbus = Sbus
+        self.S_LD = S_LD
+        self.MVA_base = MVA_base
+        self.V0 = V0
+        self.pq_index = pq_index
+        self.pv_index = pv_index
+        self.ref = ref
+        self.Gen_rating = Gen_rating
+        self.Br_rating = Br_rating
+        self.BUS_NR = BUS_NR
+        self.FROM_BUS_AND_TO_BUS = FROM_BUS_AND_TO_BUS
+        self.Tran_rating = Tran_rating
 @log_function
 def load_network_data(filename, debug=False):
     """
@@ -24,8 +46,7 @@ def load_network_data(filename, debug=False):
         debug (bool): If True, enables detailed logging.
 
     Returns:
-        tuple: (Ybus, Y_fr, Y_to, br_f, br_t, buscode, bus_labels, Sbus, S_LD,
-                MVA_base, V0, pq_index, pv_index, ref)
+        NetworkData: An instance of the NetworkData class containing all the network data.
     """   
     # Declare globals if needed (Sbus will now be computed)
     global Ybus, Sbus, V0, buscode, ref, pq_index, pv_index
@@ -37,17 +58,15 @@ def load_network_data(filename, debug=False):
      bus_to_ind, ind_to_bus) = rd.read_network_data_from_file(filename)
     MVA_base = mva_base
 
-    # Extract MVA ratings for generators , branches and transformers
+    # Extract MVA ratings for generators, branches, and transformers
     Gen_rating = [(gen[0], gen[1]) for gen in gen_data]
-    Br_rating = [(br[0],br[1],br[2],br[6]) for br in line_data]
-    Tran_rating = [(tran[0],tran[1],tran[2],tran[7]) for tran in tran_data]
+    Br_rating = [(br[0], br[1], br[2], br[6]) for br in line_data]
+    Tran_rating = [(tran[0], tran[1], tran[2], tran[7]) for tran in tran_data]
 
-    
-
-    #BUS number for printing results used to append corrertly
+    # BUS number for printing results used to append correctly
     BUS_NR = [bus[0] for bus in bus_data]
-    FROM_BUS_AND_TO_BUS = [(line[0],line[1],line[2]) for line in line_data]
-    FROM_BUS_AND_TO_BUS += [(tran[0],tran[1],tran[2]) for tran in tran_data]
+    FROM_BUS_AND_TO_BUS = [(line[0], line[1], line[2]) for line in line_data]
+    FROM_BUS_AND_TO_BUS += [(tran[0], tran[1], tran[2]) for tran in tran_data]
 
     # Determine sizes for arrays
     num_buses = len(bus_data)
@@ -64,8 +83,8 @@ def load_network_data(filename, debug=False):
 
     branch_counter = 0
     branch_counter = _process_line_data(line_data, bus_to_ind, Ybus,
-                                          Y_fr, Y_to, br_f, br_t,
-                                          branch_counter)
+                                        Y_fr, Y_to, br_f, br_t,
+                                        branch_counter)
     branch_counter = _process_transformer_data(tran_data, bus_to_ind, Ybus,
                                                Y_fr, Y_to, br_f, br_t,
                                                branch_counter)
@@ -88,9 +107,8 @@ def load_network_data(filename, debug=False):
     pq_index = np.array(pq_index)
     pv_index = np.array(pv_index)
     
-    return (Ybus, Y_fr, Y_to, br_f, br_t, buscode, bus_labels, Sbus, S_LD,
-            MVA_base, V0, pq_index, pv_index, ref, Gen_rating,Br_rating,BUS_NR,FROM_BUS_AND_TO_BUS,Tran_rating)
-
+    return NetworkData(Ybus, Y_fr, Y_to, br_f, br_t, buscode, bus_labels, Sbus, S_LD,
+                       MVA_base, V0, pq_index, pv_index, ref, Gen_rating, Br_rating, BUS_NR, FROM_BUS_AND_TO_BUS, Tran_rating)
 
 def _process_line_data(line_data, bus_to_ind, Ybus, Y_fr, Y_to, br_f, br_t, branch_counter):
     for ld in line_data:
