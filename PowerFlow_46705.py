@@ -392,10 +392,6 @@ def DisplayResults_and_loading(V, lnd):
     Note: Bus numbers for branches are assumed to be 1-based, and the bus labels
     in Gen_rating must match the entries in bus_labels.
     """
-    import numpy as np
-
-    # Unpack network data from lnd
-   
 
     N = len(V)          # number of buses
     num_branches = len(lnd.br_f)

@@ -6,7 +6,7 @@ from logger import log_function, setup_logger
 setup_logger()
 class NetworkData:
     def __init__(self, Ybus, Y_fr, Y_to, br_f, br_t, buscode, bus_labels, Sbus, S_LD,
-                 MVA_base, V0, pq_index, pv_index, ref, Gen_rating, Br_rating, BUS_NR, FROM_BUS_AND_TO_BUS, Tran_rating):
+                 MVA_base, V0, pq_index, pv_index, ref, Gen_rating, Br_rating, BUS_NR, FROM_BUS_AND_TO_BUS, Tran_rating,v_min,v_max):
         self.Ybus = Ybus
         self.Y_fr = Y_fr
         self.Y_to = Y_to
@@ -26,6 +26,8 @@ class NetworkData:
         self.BUS_NR = BUS_NR
         self.FROM_BUS_AND_TO_BUS = FROM_BUS_AND_TO_BUS
         self.Tran_rating = Tran_rating
+        self.v_min=v_min
+        self.v_max=v_max
 @log_function
 def load_network_data(filename, debug=False):
     """
@@ -59,12 +61,16 @@ def load_network_data(filename, debug=False):
     MVA_base = mva_base
 
     # Extract MVA ratings for generators, branches, and transformers
+    # (BUS number, MVA rating) tuples
     Gen_rating = [(gen[0], gen[1]) for gen in gen_data]
+    # (From Bus, To Bus, ID, MVA rating) tuples
     Br_rating = [(br[0], br[1], br[2], br[6]) for br in line_data]
+    # (From Bus, To Bus, ID, MVA rating) tuples
     Tran_rating = [(tran[0], tran[1], tran[2], tran[7]) for tran in tran_data]
 
     # BUS number for printing results used to append correctly
     BUS_NR = [bus[0] for bus in bus_data]
+    # Create a list of tuples with (From Bus, To Bus, ID) for branches
     FROM_BUS_AND_TO_BUS = [(line[0], line[1], line[2]) for line in line_data]
     FROM_BUS_AND_TO_BUS += [(tran[0], tran[1], tran[2]) for tran in tran_data]
 
@@ -108,7 +114,7 @@ def load_network_data(filename, debug=False):
     pv_index = np.array(pv_index)
     
     return NetworkData(Ybus, Y_fr, Y_to, br_f, br_t, buscode, bus_labels, Sbus, S_LD,
-                       MVA_base, V0, pq_index, pv_index, ref, Gen_rating, Br_rating, BUS_NR, FROM_BUS_AND_TO_BUS, Tran_rating)
+                       MVA_base, V0, pq_index, pv_index, ref, Gen_rating, Br_rating, BUS_NR, FROM_BUS_AND_TO_BUS, Tran_rating,v_min,v_max)
 
 def _process_line_data(line_data, bus_to_ind, Ybus, Y_fr, Y_to, br_f, br_t, branch_counter):
     for ld in line_data:
