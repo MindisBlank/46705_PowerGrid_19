@@ -6,8 +6,8 @@ def main():
     import numpy as np
     # Load network data from file
     #lnd = ld.load_network_data('testsystem.txt')
-    #lnd = ld.load_network_data('Nordic32_SA.txt')
-    lnd=ld.load_network_data('TestSystem_with_trf.txt')
+    lnd = ld.load_network_data('Nordic32_SA.txt')
+    #lnd=ld.load_network_data('TestSystem_with_trf.txt')
     #(Ybus, Y_fr, Y_to, br_f, br_t, buscode, bus_labels, Sbus, S_LD,
             #MVA_base, V0, pq_index, pv_index, ref, Gen_rating,Br_rating,BUS_NR,FROM_BUS_AND_TO_BUS,Tran_rating) = lnd
     

@@ -87,7 +87,6 @@ def System_violations(V, Ybus, Y_from, Y_to, lnd):
     # 3. Check bus voltages (assumed limits: 0.9 pu to 1.1 pu)
     for i in range(len(V)):
         voltage = abs(V[i])
-        print(voltage)
         if voltage < lnd.v_min[i] or voltage > lnd.v_max[i]:
             violations.append("Voltage violation at bus {}: {:.2f} pu".format(
                 BUS_NR[i], voltage))
