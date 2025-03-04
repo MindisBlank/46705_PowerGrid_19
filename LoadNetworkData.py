@@ -1,84 +1,92 @@
 import numpy as np
 import ReadNetworkData as rd
 from logger import log_function, setup_logger
-
+from dataclasses import dataclass
 
 setup_logger()
+@dataclass
+class NetworkData:
+    Ybus: np.ndarray
+    Y_from: np.ndarray
+    Y_to: np.ndarray
+    branch_from: np.ndarray
+    branch_to: np.ndarray
+    buscode: list
+    bus_labels: list
+    Sbus: np.ndarray
+    S_load: np.ndarray
+    MVA_base: float
+    V0: np.ndarray
+    pq_index: np.ndarray
+    pv_index: np.ndarray
+    ref: list
+    gen_rating: list
+    branch_rating: list
+    bus_numbers: list
+    bus_pairs: list
+    tran_rating: list
+    v_min: float
+    v_max: float
+
 @log_function
-def load_network_data(filename, debug=False):
-    """
-    Reads a network data file and constructs the network model.
+def load_network_data(filename: str, debug: bool = False) -> NetworkData:
+    # Read network data from file using a helper function
+    bus_data, load_data, gen_data, line_data, tran_data, mva_base, bus_to_ind, ind_to_bus = rd.read_network_data_from_file(filename)
+    
+    # Extract ratings and bus numbers
+    gen_rating = [(gen[0], gen[1]) for gen in gen_data]
+    branch_rating = [(br[0], br[1], br[2], br[6]) for br in line_data]
+    tran_rating = [(tran[0], tran[1], tran[2], tran[7]) for tran in tran_data]
+    bus_numbers = [bus[0] for bus in bus_data]
+    bus_pairs = [(line[0], line[1], line[2]) for line in line_data] + [(tran[0], tran[1], tran[2]) for tran in tran_data]
 
-    The function builds:
-      - Bus admittance matrix (Ybus)
-      - Branch admittance matrices (Y_fr and Y_to) for line flows
-      - Arrays with branch indices (br_f, br_t)
-      - Bus type codes and labels (buscode, bus_labels)
-      - Complex load vector (S_LD in pu)
-      - Specified injection vector (Sbus in pu) computed as S_gen - S_LD
-      - System MVA base and initial bus voltage vector (V0)
-      - Optionally, indices for PQ, PV, and reference buses (pq_index, pv_index, ref)
-
-    Parameters:
-        filename (str): Path to the data file.
-        debug (bool): If True, enables detailed logging.
-
-    Returns:
-        tuple: (Ybus, Y_fr, Y_to, br_f, br_t, buscode, bus_labels, Sbus, S_LD,
-                MVA_base, V0, pq_index, pv_index, ref)
-    """   
-    # Declare globals if needed (Sbus will now be computed)
-    global Ybus, Sbus, V0, buscode, ref, pq_index, pv_index
-    global Y_fr, Y_to, br_f, br_t, S_LD, ind_to_bus, bus_to_ind
-    global MVA_base, bus_labels, bus_kv, v_min, v_max
-
-    # Read network data from file using the helper
-    (bus_data, load_data, gen_data, line_data, tran_data, mva_base,
-     bus_to_ind, ind_to_bus) = rd.read_network_data_from_file(filename)
-    MVA_base = mva_base
-
-    # Determine sizes for arrays
     num_buses = len(bus_data)
     num_lines = len(line_data)
     num_trans = len(tran_data)
     num_branches = num_lines + num_trans
 
-    # Initialize matrices and arrays
+    # Initialize matrices
     Ybus = np.zeros((num_buses, num_buses), dtype=complex)
-    Y_fr = np.zeros((num_branches, num_buses), dtype=complex)
+    Y_from = np.zeros((num_branches, num_buses), dtype=complex)
     Y_to = np.zeros((num_branches, num_buses), dtype=complex)
-    br_f = np.zeros(num_branches, dtype=int)
-    br_t = np.zeros(num_branches, dtype=int)
+    branch_from = np.zeros(num_branches, dtype=int)
+    branch_to = np.zeros(num_branches, dtype=int)
 
     branch_counter = 0
-    branch_counter = _process_line_data(line_data, bus_to_ind, Ybus,
-                                          Y_fr, Y_to, br_f, br_t,
-                                          branch_counter)
-    branch_counter = _process_transformer_data(tran_data, bus_to_ind, Ybus,
-                                               Y_fr, Y_to, br_f, br_t,
-                                               branch_counter)
-    (buscode, bus_labels, V0, bus_kv, v_min, v_max) = _process_bus_data(bus_data, bus_to_ind)
-    S_LD = _process_load_data(load_data, bus_to_ind, MVA_base, num_buses)
-    # Process generator data to get S_gen
-    S_gen = _process_gen_data(gen_data, bus_to_ind, MVA_base, num_buses)
+    branch_counter = _process_line_data(line_data, bus_to_ind, Ybus, Y_from, Y_to, branch_from, branch_to, branch_counter)
+    branch_counter = _process_transformer_data(tran_data, bus_to_ind, Ybus, Y_from, Y_to, branch_from, branch_to, branch_counter)
     
-    # Compute Sbus: for slack (BUSCODE==3), Sbus = 0; otherwise Sbus = S_gen - S_LD.
-    Sbus = np.zeros(num_buses, dtype=complex)
-    for i in range(num_buses):
-        if buscode[i] == 3:  # Slack bus
-            Sbus[i] = 0
-        else:
-            Sbus[i] = S_gen[i] - S_LD[i]
-    
+    buscode, bus_labels, V0, bus_kv, v_min, v_max = _process_bus_data(bus_data, bus_to_ind)
+    S_load = _process_load_data(load_data, bus_to_ind, mva_base, num_buses)
+    S_gen = _process_gen_data(gen_data, bus_to_ind, mva_base, num_buses)
+
+    # Compute Sbus using a list comprehension
+    Sbus = np.array([0 if code == 3 else S_gen[i] - S_load[i] for i, code in enumerate(buscode)], dtype=complex)
     pq_index, pv_index, ref = _classify_bus_types(buscode)
     
-    # Optionally convert lists to numpy arrays
-    pq_index = np.array(pq_index)
-    pv_index = np.array(pv_index)
-    
-    return (Ybus, Y_fr, Y_to, br_f, br_t, buscode, bus_labels, Sbus, S_LD,
-            MVA_base, V0, pq_index, pv_index, ref)
-
+    return NetworkData(
+        Ybus=Ybus,
+        Y_from=Y_from,
+        Y_to=Y_to,
+        branch_from=branch_from,
+        branch_to=branch_to,
+        buscode=buscode,
+        bus_labels=bus_labels,
+        Sbus=Sbus,
+        S_load=S_load,
+        MVA_base=mva_base,
+        V0=V0,
+        pq_index=np.array(pq_index),
+        pv_index=np.array(pv_index),
+        ref=ref,
+        gen_rating=gen_rating,
+        branch_rating=branch_rating,
+        bus_numbers=bus_numbers,
+        bus_pairs=bus_pairs,
+        tran_rating=tran_rating,
+        v_min=v_min,
+        v_max=v_max
+    )
 
 def _process_line_data(line_data, bus_to_ind, Ybus, Y_fr, Y_to, br_f, br_t, branch_counter):
     for ld in line_data:
