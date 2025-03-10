@@ -282,16 +282,6 @@ def Update_Voltages(dx, V, pv_index, pq_index):
     return V_new
 
 
-<<<<<<< HEAD
-
-
-####################################################
-#  Displaying the results in the terminal window   #
-####################################################
-def DisplayResults(V,lnd):
-
-    return
-=======
 def DisplayResults(V, lnd):
     """
     Display the results of the power flow calculation.
@@ -495,4 +485,3 @@ def DisplayResults_and_loading(V, lnd):
                         S_to.real, S_to.imag, load_to_pct))
         print(line)
     print("=" * 140)
->>>>>>> 8f1aa2d7f3c7d56edd20632b03def04ba17c9003

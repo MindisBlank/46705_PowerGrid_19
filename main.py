@@ -7,7 +7,8 @@ def main():
     # Load network data from file
     #lnd = ld.load_network_data('testsystem.txt')
     #lnd = ld.load_network_data('Nordic32_SA.txt')
-    lnd=ld.load_network_data('TestSystem_with_trf.txt')
+    #lnd=ld.load_network_data('TestSystem_with_trf.txt')
+    lnd=ld.load_network_data('Kundur_two_area_system.txt')
 
     # Set maximum number of iterations and tolerance for convergence
     max_iter = 30
