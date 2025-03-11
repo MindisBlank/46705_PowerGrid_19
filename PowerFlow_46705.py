@@ -393,7 +393,7 @@ def DisplayResults_and_loading(V, lnd):
 
     # Create a dictionary for generator ratings keyed by bus label.
     # e.g., {'BUS1HV': rating1, 'BUS2HV': rating2, ...}
-    gen_rating_dict = {bus_label: rating for (bus_label, rating) in lnd.gen_rating}
+    gen_rating_dict = {bus_label: rating for (bus_label, rating, Q_max, Q_min) in lnd.gen_rating}
 
     # Create a dictionary for branch ratings keyed by (from_bus, to_bus) tuple (both 1-based)
     br_rating_dict = {(fb, tb,id): rating for (fb, tb,id, rating) in lnd.branch_rating}

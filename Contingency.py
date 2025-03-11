@@ -53,7 +53,7 @@ def system_violations(v, ybus, y_from, y_to, lnd):
             - MVA_base: System base in MVA.
             - branch_rating: List of branch ratings from line data.
             - tran_rating: List of transformer ratings.
-            - gen_rating: List of (generator bus, MVA limit) tuples.
+            - gen_rating: List of (generator bus, MVA rating, Q_max [MVAr], Q_min [MVAr]) tuples.
             - v_min: Minimum voltage limits.
             - v_max: Maximum voltage limits.
 
@@ -107,17 +107,36 @@ def system_violations(v, ybus, y_from, y_to, lnd):
                 )
             )
 
-    # 2. Check generator outputs for violations
-    for gen_bus, gen_limit in lnd.gen_rating:
+    # 2. Check generator outputs for violations (including reactive power limits)
+    for gen_bus, mva_rating, Q_max, Q_min in lnd.gen_rating:
         try:
             bus_idx = bus_nr.index(gen_bus)
         except ValueError:
             continue  # Skip if the generator bus is not found
-        gen_output = abs(s_gen[bus_idx]) * lnd.MVA_base
-        if gen_output > gen_limit:
+
+        # Calculate generator injection in MVA (complex number)
+        gen_injection = s_gen[bus_idx] * lnd.MVA_base
+        apparent_power = abs(gen_injection)
+        if apparent_power > mva_rating:
             violations.append(
-                "Generator at bus {} violation: output {:.2f} MVA > limit {:.2f} MVA"
-                .format(gen_bus, gen_output, gen_limit)
+                "Generator at bus {} violation: Apparent power {:.2f} MVA > rating {:.2f} MVA".format(
+                    gen_bus, apparent_power, mva_rating
+                )
+            )
+
+        # Check reactive power limits
+        Q_gen = gen_injection.imag
+        if Q_gen > Q_max:
+            violations.append(
+                "Generator at bus {} reactive power violation: Q {:.2f} MVAr > Q_max {:.2f} MVAr".format(
+                    gen_bus, Q_gen, Q_max
+                )
+            )
+        if Q_gen < Q_min:
+            violations.append(
+                "Generator at bus {} reactive power violation: Q {:.2f} MVAr < Q_min {:.2f} MVAr".format(
+                    gen_bus, Q_gen, Q_min
+                )
             )
 
     # 3. Check voltage limits for violations
