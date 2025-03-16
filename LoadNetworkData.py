@@ -1,9 +1,8 @@
 import numpy as np
 import ReadNetworkData as rd
-from logger import log_function, setup_logger
 from dataclasses import dataclass
 
-setup_logger()
+
 @dataclass
 class NetworkData:
     Ybus: np.ndarray
@@ -28,7 +27,7 @@ class NetworkData:
     v_min: float
     v_max: float
 
-@log_function
+
 def load_network_data(filename: str, debug: bool = False) -> NetworkData:
     # Read network data from file using a helper function
     bus_data, load_data, gen_data, line_data, tran_data, mva_base, bus_to_ind, ind_to_bus = rd.read_network_data_from_file(filename)
