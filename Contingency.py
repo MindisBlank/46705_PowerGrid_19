@@ -34,7 +34,7 @@ def apply_contingency_to_Y_matrices(ybus, y_fr, y_to, fr_ind, to_ind, br_ind, yb
 
     return ybus_mod, y_fr_mod, y_to_mod
 
-
+#TODO fix branch ID numbers
 def system_violations(v, ybus, y_from, y_to, lnd):
     """
     Calculate system violations based on voltage, branch flows, and generator outputs.
@@ -88,7 +88,7 @@ def system_violations(v, ybus, y_from, y_to, lnd):
 
         flow_from = abs(s_from[i]) * lnd.MVA_base
         flow_to = abs(s_to[i]) * lnd.MVA_base
-        branch_id = branch_info[i][2]
+        branch_num = i+1  # Branch ID number (1-indexed)
         from_bus = branch_info[i][0]
         to_bus = branch_info[i][1]
 
@@ -96,14 +96,14 @@ def system_violations(v, ybus, y_from, y_to, lnd):
             violations.append(
                 "Branch {} (bus {} -> bus {}) from-end flow violation: "
                 "{:.2f} MVA > limit {:.2f} MVA".format(
-                    branch_id, from_bus, to_bus, flow_from, limit
+                    branch_num, from_bus, to_bus, flow_from, limit
                 )
             )
         if flow_to > limit:
             violations.append(
                 "Branch {} (bus {} -> bus {}) to-end flow violation: "
                 "{:.2f} MVA > limit {:.2f} MVA".format(
-                    branch_id, from_bus, to_bus, flow_to, limit
+                    branch_num, from_bus, to_bus, flow_to, limit
                 )
             )
 

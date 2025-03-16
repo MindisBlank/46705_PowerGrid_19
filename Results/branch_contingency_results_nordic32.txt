@@ -91,38 +91,38 @@ No violations detected.
 --- Simulating branch outage for index 19 (from bus 27 to bus 28) ---
 Power flow converged for this branch outage.
 Violations detected:
-Branch 1  (bus 4031 -> bus 4032) from-end flow violation: 967.75 MVA > limit 950.00 MVA
-Branch 1  (bus 4031 -> bus 4032) to-end flow violation: 969.18 MVA > limit 950.00 MVA
+Branch 30 (bus 4031 -> bus 4032) from-end flow violation: 967.75 MVA > limit 950.00 MVA
+Branch 30 (bus 4031 -> bus 4032) to-end flow violation: 969.18 MVA > limit 950.00 MVA
 Generator at bus 1022 reactive power violation: Q 148.83 MVAr > Q_max 130.00 MVAr
 
 --- Simulating branch outage for index 20 (from bus 27 to bus 29) ---
 Power flow converged for this branch outage.
 Violations detected:
-Branch 1  (bus 4011 -> bus 4022) from-end flow violation: 1060.33 MVA > limit 950.00 MVA
-Branch 1  (bus 4011 -> bus 4022) to-end flow violation: 1006.80 MVA > limit 950.00 MVA
-Branch 1  (bus 4012 -> bus 4022) from-end flow violation: 1221.06 MVA > limit 950.00 MVA
-Branch 1  (bus 4012 -> bus 4022) to-end flow violation: 1157.27 MVA > limit 950.00 MVA
-Branch 1  (bus 4022 -> bus 4031) from-end flow violation: 1215.70 MVA > limit 900.00 MVA
-Branch 1  (bus 4022 -> bus 4031) to-end flow violation: 1260.66 MVA > limit 900.00 MVA
-Branch 2  (bus 4022 -> bus 4031) from-end flow violation: 1215.70 MVA > limit 900.00 MVA
-Branch 2  (bus 4022 -> bus 4031) to-end flow violation: 1260.66 MVA > limit 900.00 MVA
-Branch 1  (bus 4031 -> bus 4032) from-end flow violation: 1530.93 MVA > limit 950.00 MVA
-Branch 1  (bus 4031 -> bus 4032) to-end flow violation: 1531.38 MVA > limit 950.00 MVA
-Branch 2  (bus 4031 -> bus 4041) from-end flow violation: 764.43 MVA > limit 750.00 MVA
+Branch 22 (bus 4011 -> bus 4022) from-end flow violation: 1060.33 MVA > limit 950.00 MVA
+Branch 22 (bus 4011 -> bus 4022) to-end flow violation: 1006.80 MVA > limit 950.00 MVA
+Branch 24 (bus 4012 -> bus 4022) from-end flow violation: 1221.06 MVA > limit 950.00 MVA
+Branch 24 (bus 4012 -> bus 4022) to-end flow violation: 1157.27 MVA > limit 950.00 MVA
+Branch 28 (bus 4022 -> bus 4031) from-end flow violation: 1215.70 MVA > limit 900.00 MVA
+Branch 28 (bus 4022 -> bus 4031) to-end flow violation: 1260.66 MVA > limit 900.00 MVA
+Branch 29 (bus 4022 -> bus 4031) from-end flow violation: 1215.70 MVA > limit 900.00 MVA
+Branch 29 (bus 4022 -> bus 4031) to-end flow violation: 1260.66 MVA > limit 900.00 MVA
+Branch 30 (bus 4031 -> bus 4032) from-end flow violation: 1530.93 MVA > limit 950.00 MVA
+Branch 30 (bus 4031 -> bus 4032) to-end flow violation: 1531.38 MVA > limit 950.00 MVA
+Branch 32 (bus 4031 -> bus 4041) from-end flow violation: 764.43 MVA > limit 750.00 MVA
 Generator at bus 1022 violation: Apparent power 527.72 MVA > rating 250.00 MVA
 Generator at bus 1022 reactive power violation: Q 488.35 MVAr > Q_max 130.00 MVAr
 Generator at bus 4021 violation: Apparent power 334.17 MVA > rating 300.00 MVA
 Generator at bus 4021 reactive power violation: Q -221.74 MVAr < Q_min -75.00 MVAr
 Generator at bus 4031 violation: Apparent power 824.78 MVA > rating 350.00 MVA
-Generator at bus 4031 reactive power violation: Q 764.31 MVAr > Q_max 175.00 MVAr
+Generator at bus 4031 reactive power violation: Q 764.30 MVAr > Q_max 175.00 MVAr
 
 --- Simulating branch outage for index 21 (from bus 27 to bus 30) ---
 Power flow converged for this branch outage.
 Violations detected:
-Branch 1  (bus 4011 -> bus 4021) from-end flow violation: 977.48 MVA > limit 950.00 MVA
-Branch 1  (bus 4011 -> bus 4021) to-end flow violation: 959.99 MVA > limit 950.00 MVA
-Branch 1  (bus 4012 -> bus 4022) from-end flow violation: 1186.41 MVA > limit 950.00 MVA
-Branch 1  (bus 4012 -> bus 4022) to-end flow violation: 1157.89 MVA > limit 950.00 MVA
+Branch 21 (bus 4011 -> bus 4021) from-end flow violation: 977.48 MVA > limit 950.00 MVA
+Branch 21 (bus 4011 -> bus 4021) to-end flow violation: 959.99 MVA > limit 950.00 MVA
+Branch 24 (bus 4012 -> bus 4022) from-end flow violation: 1186.41 MVA > limit 950.00 MVA
+Branch 24 (bus 4012 -> bus 4022) to-end flow violation: 1157.89 MVA > limit 950.00 MVA
 Generator at bus 1022 violation: Apparent power 280.41 MVA > rating 250.00 MVA
 Generator at bus 1022 reactive power violation: Q 196.55 MVAr > Q_max 130.00 MVAr
 
@@ -133,12 +133,12 @@ No violations detected.
 --- Simulating branch outage for index 23 (from bus 28 to bus 30) ---
 Power flow converged for this branch outage.
 Violations detected:
-Branch 1  (bus 4011 -> bus 4012) from-end flow violation: 1080.38 MVA > limit 950.00 MVA
-Branch 1  (bus 4011 -> bus 4012) to-end flow violation: 1082.86 MVA > limit 950.00 MVA
-Branch 1  (bus 4011 -> bus 4021) from-end flow violation: 1022.89 MVA > limit 950.00 MVA
-Branch 1  (bus 4011 -> bus 4021) to-end flow violation: 1005.47 MVA > limit 950.00 MVA
-Branch 1  (bus 4011 -> bus 4022) from-end flow violation: 1147.79 MVA > limit 950.00 MVA
-Branch 1  (bus 4011 -> bus 4022) to-end flow violation: 1120.73 MVA > limit 950.00 MVA
+Branch 20 (bus 4011 -> bus 4012) from-end flow violation: 1080.38 MVA > limit 950.00 MVA
+Branch 20 (bus 4011 -> bus 4012) to-end flow violation: 1082.86 MVA > limit 950.00 MVA
+Branch 21 (bus 4011 -> bus 4021) from-end flow violation: 1022.89 MVA > limit 950.00 MVA
+Branch 21 (bus 4011 -> bus 4021) to-end flow violation: 1005.47 MVA > limit 950.00 MVA
+Branch 22 (bus 4011 -> bus 4022) from-end flow violation: 1147.79 MVA > limit 950.00 MVA
+Branch 22 (bus 4011 -> bus 4022) to-end flow violation: 1120.73 MVA > limit 950.00 MVA
 Generator at bus 1022 violation: Apparent power 276.45 MVA > rating 250.00 MVA
 Generator at bus 1022 reactive power violation: Q 190.86 MVAr > Q_max 130.00 MVAr
 Generator at bus 4011 reactive power violation: Q 544.55 MVAr > Q_max 500.00 MVAr
@@ -150,27 +150,27 @@ No violations detected.
 --- Simulating branch outage for index 25 (from bus 29 to bus 32) ---
 Power flow converged for this branch outage.
 Violations detected:
-Branch 1  (bus 4021 -> bus 4042) from-end flow violation: 872.31 MVA > limit 750.00 MVA
-Branch 1  (bus 4021 -> bus 4042) to-end flow violation: 823.24 MVA > limit 750.00 MVA
-Branch 1  (bus 4031 -> bus 4032) from-end flow violation: 1127.03 MVA > limit 950.00 MVA
-Branch 1  (bus 4031 -> bus 4032) to-end flow violation: 1129.65 MVA > limit 950.00 MVA
+Branch 27 (bus 4021 -> bus 4042) from-end flow violation: 872.31 MVA > limit 750.00 MVA
+Branch 27 (bus 4021 -> bus 4042) to-end flow violation: 823.24 MVA > limit 750.00 MVA
+Branch 30 (bus 4031 -> bus 4032) from-end flow violation: 1127.03 MVA > limit 950.00 MVA
+Branch 30 (bus 4031 -> bus 4032) to-end flow violation: 1129.65 MVA > limit 950.00 MVA
 Generator at bus 1022 violation: Apparent power 267.80 MVA > rating 250.00 MVA
 Generator at bus 1022 reactive power violation: Q 178.09 MVAr > Q_max 130.00 MVAr
 
 --- Simulating branch outage for index 26 (from bus 29 to bus 34) ---
 Power flow converged for this branch outage.
 Violations detected:
-Branch 1  (bus 4021 -> bus 4032) from-end flow violation: 870.92 MVA > limit 750.00 MVA
-Branch 1  (bus 4021 -> bus 4032) to-end flow violation: 854.50 MVA > limit 750.00 MVA
-Branch 1  (bus 4022 -> bus 4031) from-end flow violation: 900.42 MVA > limit 900.00 MVA
-Branch 2  (bus 4022 -> bus 4031) from-end flow violation: 900.42 MVA > limit 900.00 MVA
-Branch 2  (bus 4031 -> bus 4041) from-end flow violation: 785.58 MVA > limit 750.00 MVA
-Branch 1  (bus 4032 -> bus 4042) from-end flow violation: 892.67 MVA > limit 750.00 MVA
-Branch 1  (bus 4032 -> bus 4042) to-end flow violation: 847.82 MVA > limit 750.00 MVA
-Branch 1  (bus 4032 -> bus 4044) from-end flow violation: 875.43 MVA > limit 750.00 MVA
-Branch 1  (bus 4032 -> bus 4044) to-end flow violation: 846.66 MVA > limit 750.00 MVA
-Branch 1  (bus 4041 -> bus 4044) from-end flow violation: 765.44 MVA > limit 750.00 MVA
-Branch 1  (bus 4041 -> bus 4044) to-end flow violation: 752.32 MVA > limit 750.00 MVA
+Branch 26 (bus 4021 -> bus 4032) from-end flow violation: 870.92 MVA > limit 750.00 MVA
+Branch 26 (bus 4021 -> bus 4032) to-end flow violation: 854.50 MVA > limit 750.00 MVA
+Branch 28 (bus 4022 -> bus 4031) from-end flow violation: 900.42 MVA > limit 900.00 MVA
+Branch 29 (bus 4022 -> bus 4031) from-end flow violation: 900.42 MVA > limit 900.00 MVA
+Branch 32 (bus 4031 -> bus 4041) from-end flow violation: 785.58 MVA > limit 750.00 MVA
+Branch 33 (bus 4032 -> bus 4042) from-end flow violation: 892.67 MVA > limit 750.00 MVA
+Branch 33 (bus 4032 -> bus 4042) to-end flow violation: 847.82 MVA > limit 750.00 MVA
+Branch 34 (bus 4032 -> bus 4044) from-end flow violation: 875.43 MVA > limit 750.00 MVA
+Branch 34 (bus 4032 -> bus 4044) to-end flow violation: 846.66 MVA > limit 750.00 MVA
+Branch 35 (bus 4041 -> bus 4044) from-end flow violation: 765.44 MVA > limit 750.00 MVA
+Branch 35 (bus 4041 -> bus 4044) to-end flow violation: 752.32 MVA > limit 750.00 MVA
 Generator at bus 1022 violation: Apparent power 280.62 MVA > rating 250.00 MVA
 Generator at bus 1022 reactive power violation: Q 196.84 MVAr > Q_max 130.00 MVAr
 Generator at bus 4031 violation: Apparent power 442.96 MVA > rating 350.00 MVA
@@ -179,10 +179,10 @@ Generator at bus 4031 reactive power violation: Q 316.40 MVAr > Q_max 175.00 MVA
 --- Simulating branch outage for index 27 (from bus 30 to bus 31) ---
 Power flow converged for this branch outage.
 Violations detected:
-Branch 1  (bus 4011 -> bus 4021) from-end flow violation: 1058.47 MVA > limit 950.00 MVA
-Branch 1  (bus 4011 -> bus 4021) to-end flow violation: 1041.11 MVA > limit 950.00 MVA
-Branch 2  (bus 4022 -> bus 4031) from-end flow violation: 1409.35 MVA > limit 900.00 MVA
-Branch 2  (bus 4022 -> bus 4031) to-end flow violation: 1426.71 MVA > limit 900.00 MVA
+Branch 21 (bus 4011 -> bus 4021) from-end flow violation: 1058.47 MVA > limit 950.00 MVA
+Branch 21 (bus 4011 -> bus 4021) to-end flow violation: 1041.11 MVA > limit 950.00 MVA
+Branch 29 (bus 4022 -> bus 4031) from-end flow violation: 1409.35 MVA > limit 900.00 MVA
+Branch 29 (bus 4022 -> bus 4031) to-end flow violation: 1426.71 MVA > limit 900.00 MVA
 Generator at bus 1022 violation: Apparent power 311.60 MVA > rating 250.00 MVA
 Generator at bus 1022 reactive power violation: Q 238.94 MVAr > Q_max 130.00 MVAr
 Generator at bus 4021 violation: Apparent power 303.52 MVA > rating 300.00 MVA
@@ -193,10 +193,10 @@ Generator at bus 4031 reactive power violation: Q 202.82 MVAr > Q_max 175.00 MVA
 --- Simulating branch outage for index 28 (from bus 30 to bus 31) ---
 Power flow converged for this branch outage.
 Violations detected:
-Branch 1  (bus 4011 -> bus 4021) from-end flow violation: 1058.47 MVA > limit 950.00 MVA
-Branch 1  (bus 4011 -> bus 4021) to-end flow violation: 1041.11 MVA > limit 950.00 MVA
-Branch 1  (bus 4022 -> bus 4031) from-end flow violation: 1409.35 MVA > limit 900.00 MVA
-Branch 1  (bus 4022 -> bus 4031) to-end flow violation: 1426.71 MVA > limit 900.00 MVA
+Branch 21 (bus 4011 -> bus 4021) from-end flow violation: 1058.47 MVA > limit 950.00 MVA
+Branch 21 (bus 4011 -> bus 4021) to-end flow violation: 1041.11 MVA > limit 950.00 MVA
+Branch 28 (bus 4022 -> bus 4031) from-end flow violation: 1409.35 MVA > limit 900.00 MVA
+Branch 28 (bus 4022 -> bus 4031) to-end flow violation: 1426.71 MVA > limit 900.00 MVA
 Generator at bus 1022 violation: Apparent power 311.60 MVA > rating 250.00 MVA
 Generator at bus 1022 reactive power violation: Q 238.94 MVAr > Q_max 130.00 MVAr
 Generator at bus 4021 violation: Apparent power 303.52 MVA > rating 300.00 MVA
@@ -207,14 +207,14 @@ Generator at bus 4031 reactive power violation: Q 202.82 MVAr > Q_max 175.00 MVA
 --- Simulating branch outage for index 29 (from bus 31 to bus 32) ---
 Power flow converged for this branch outage.
 Violations detected:
-Branch 1  (bus 4011 -> bus 4021) from-end flow violation: 1157.91 MVA > limit 950.00 MVA
-Branch 1  (bus 4011 -> bus 4021) to-end flow violation: 1140.75 MVA > limit 950.00 MVA
-Branch 1  (bus 4031 -> bus 4041) from-end flow violation: 1015.14 MVA > limit 900.00 MVA
-Branch 1  (bus 4031 -> bus 4041) to-end flow violation: 979.69 MVA > limit 900.00 MVA
-Branch 2  (bus 4031 -> bus 4041) from-end flow violation: 1015.14 MVA > limit 750.00 MVA
-Branch 2  (bus 4031 -> bus 4041) to-end flow violation: 979.69 MVA > limit 750.00 MVA
-Branch 1  (bus 4041 -> bus 4044) from-end flow violation: 1118.98 MVA > limit 750.00 MVA
-Branch 1  (bus 4041 -> bus 4044) to-end flow violation: 1105.47 MVA > limit 750.00 MVA
+Branch 21 (bus 4011 -> bus 4021) from-end flow violation: 1157.91 MVA > limit 950.00 MVA
+Branch 21 (bus 4011 -> bus 4021) to-end flow violation: 1140.75 MVA > limit 950.00 MVA
+Branch 31 (bus 4031 -> bus 4041) from-end flow violation: 1015.14 MVA > limit 900.00 MVA
+Branch 31 (bus 4031 -> bus 4041) to-end flow violation: 979.69 MVA > limit 900.00 MVA
+Branch 32 (bus 4031 -> bus 4041) from-end flow violation: 1015.14 MVA > limit 750.00 MVA
+Branch 32 (bus 4031 -> bus 4041) to-end flow violation: 979.69 MVA > limit 750.00 MVA
+Branch 35 (bus 4041 -> bus 4044) from-end flow violation: 1118.98 MVA > limit 750.00 MVA
+Branch 35 (bus 4041 -> bus 4044) to-end flow violation: 1105.47 MVA > limit 750.00 MVA
 Generator at bus 4021 violation: Apparent power 321.80 MVA > rating 300.00 MVA
 Generator at bus 4021 reactive power violation: Q 202.62 MVAr > Q_max 150.00 MVAr
 Generator at bus 4042 reactive power violation: Q -266.99 MVAr < Q_min -150.00 MVAr
@@ -222,89 +222,89 @@ Generator at bus 4042 reactive power violation: Q -266.99 MVAr < Q_min -150.00 M
 --- Simulating branch outage for index 30 (from bus 31 to bus 33) ---
 Power flow converged for this branch outage.
 Violations detected:
-Branch 1  (bus 4031 -> bus 4032) from-end flow violation: 1195.79 MVA > limit 950.00 MVA
-Branch 1  (bus 4031 -> bus 4032) to-end flow violation: 1193.78 MVA > limit 950.00 MVA
-Branch 2  (bus 4031 -> bus 4041) from-end flow violation: 1077.37 MVA > limit 750.00 MVA
-Branch 2  (bus 4031 -> bus 4041) to-end flow violation: 1041.98 MVA > limit 750.00 MVA
-Branch 1  (bus 4032 -> bus 4044) from-end flow violation: 841.38 MVA > limit 750.00 MVA
-Branch 1  (bus 4032 -> bus 4044) to-end flow violation: 810.46 MVA > limit 750.00 MVA
+Branch 30 (bus 4031 -> bus 4032) from-end flow violation: 1195.79 MVA > limit 950.00 MVA
+Branch 30 (bus 4031 -> bus 4032) to-end flow violation: 1193.78 MVA > limit 950.00 MVA
+Branch 32 (bus 4031 -> bus 4041) from-end flow violation: 1077.37 MVA > limit 750.00 MVA
+Branch 32 (bus 4031 -> bus 4041) to-end flow violation: 1041.98 MVA > limit 750.00 MVA
+Branch 34 (bus 4032 -> bus 4044) from-end flow violation: 841.38 MVA > limit 750.00 MVA
+Branch 34 (bus 4032 -> bus 4044) to-end flow violation: 810.46 MVA > limit 750.00 MVA
 Generator at bus 4031 violation: Apparent power 403.78 MVA > rating 350.00 MVA
 Generator at bus 4031 reactive power violation: Q 258.73 MVAr > Q_max 175.00 MVAr
 
 --- Simulating branch outage for index 31 (from bus 31 to bus 33) ---
 Power flow converged for this branch outage.
 Violations detected:
-Branch 1  (bus 4031 -> bus 4032) from-end flow violation: 1195.79 MVA > limit 950.00 MVA
-Branch 1  (bus 4031 -> bus 4032) to-end flow violation: 1193.78 MVA > limit 950.00 MVA
-Branch 1  (bus 4031 -> bus 4041) from-end flow violation: 1077.37 MVA > limit 900.00 MVA
-Branch 1  (bus 4031 -> bus 4041) to-end flow violation: 1041.98 MVA > limit 900.00 MVA
-Branch 1  (bus 4032 -> bus 4044) from-end flow violation: 841.38 MVA > limit 750.00 MVA
-Branch 1  (bus 4032 -> bus 4044) to-end flow violation: 810.46 MVA > limit 750.00 MVA
+Branch 30 (bus 4031 -> bus 4032) from-end flow violation: 1195.79 MVA > limit 950.00 MVA
+Branch 30 (bus 4031 -> bus 4032) to-end flow violation: 1193.78 MVA > limit 950.00 MVA
+Branch 31 (bus 4031 -> bus 4041) from-end flow violation: 1077.37 MVA > limit 900.00 MVA
+Branch 31 (bus 4031 -> bus 4041) to-end flow violation: 1041.98 MVA > limit 900.00 MVA
+Branch 34 (bus 4032 -> bus 4044) from-end flow violation: 841.38 MVA > limit 750.00 MVA
+Branch 34 (bus 4032 -> bus 4044) to-end flow violation: 810.46 MVA > limit 750.00 MVA
 Generator at bus 4031 violation: Apparent power 403.78 MVA > rating 350.00 MVA
 Generator at bus 4031 reactive power violation: Q 258.73 MVAr > Q_max 175.00 MVAr
 
 --- Simulating branch outage for index 32 (from bus 32 to bus 34) ---
 Power flow converged for this branch outage.
 Violations detected:
-Branch 1  (bus 4021 -> bus 4042) from-end flow violation: 812.89 MVA > limit 750.00 MVA
-Branch 1  (bus 4021 -> bus 4042) to-end flow violation: 763.68 MVA > limit 750.00 MVA
-Branch 2  (bus 4031 -> bus 4041) from-end flow violation: 789.48 MVA > limit 750.00 MVA
-Branch 2  (bus 4031 -> bus 4041) to-end flow violation: 753.88 MVA > limit 750.00 MVA
-Branch 1  (bus 4032 -> bus 4044) from-end flow violation: 927.49 MVA > limit 750.00 MVA
-Branch 1  (bus 4032 -> bus 4044) to-end flow violation: 896.59 MVA > limit 750.00 MVA
-Branch 1  (bus 4041 -> bus 4044) from-end flow violation: 771.51 MVA > limit 750.00 MVA
-Branch 1  (bus 4041 -> bus 4044) to-end flow violation: 758.02 MVA > limit 750.00 MVA
+Branch 27 (bus 4021 -> bus 4042) from-end flow violation: 812.89 MVA > limit 750.00 MVA
+Branch 27 (bus 4021 -> bus 4042) to-end flow violation: 763.68 MVA > limit 750.00 MVA
+Branch 32 (bus 4031 -> bus 4041) from-end flow violation: 789.48 MVA > limit 750.00 MVA
+Branch 32 (bus 4031 -> bus 4041) to-end flow violation: 753.88 MVA > limit 750.00 MVA
+Branch 34 (bus 4032 -> bus 4044) from-end flow violation: 927.49 MVA > limit 750.00 MVA
+Branch 34 (bus 4032 -> bus 4044) to-end flow violation: 896.59 MVA > limit 750.00 MVA
+Branch 35 (bus 4041 -> bus 4044) from-end flow violation: 771.51 MVA > limit 750.00 MVA
+Branch 35 (bus 4041 -> bus 4044) to-end flow violation: 758.02 MVA > limit 750.00 MVA
 
 --- Simulating branch outage for index 33 (from bus 32 to bus 36) ---
 Power flow converged for this branch outage.
 Violations detected:
-Branch 1  (bus 4021 -> bus 4042) from-end flow violation: 785.81 MVA > limit 750.00 MVA
-Branch 2  (bus 4031 -> bus 4041) from-end flow violation: 846.80 MVA > limit 750.00 MVA
-Branch 2  (bus 4031 -> bus 4041) to-end flow violation: 811.21 MVA > limit 750.00 MVA
-Branch 1  (bus 4032 -> bus 4042) from-end flow violation: 910.09 MVA > limit 750.00 MVA
-Branch 1  (bus 4032 -> bus 4042) to-end flow violation: 858.89 MVA > limit 750.00 MVA
-Branch 1  (bus 4041 -> bus 4044) from-end flow violation: 861.20 MVA > limit 750.00 MVA
-Branch 1  (bus 4041 -> bus 4044) to-end flow violation: 846.26 MVA > limit 750.00 MVA
-Branch 1  (bus 4042 -> bus 4043) from-end flow violation: 928.95 MVA > limit 900.00 MVA
-Branch 1  (bus 4042 -> bus 4043) to-end flow violation: 905.61 MVA > limit 900.00 MVA
+Branch 27 (bus 4021 -> bus 4042) from-end flow violation: 785.81 MVA > limit 750.00 MVA
+Branch 32 (bus 4031 -> bus 4041) from-end flow violation: 846.80 MVA > limit 750.00 MVA
+Branch 32 (bus 4031 -> bus 4041) to-end flow violation: 811.21 MVA > limit 750.00 MVA
+Branch 33 (bus 4032 -> bus 4042) from-end flow violation: 910.09 MVA > limit 750.00 MVA
+Branch 33 (bus 4032 -> bus 4042) to-end flow violation: 858.89 MVA > limit 750.00 MVA
+Branch 35 (bus 4041 -> bus 4044) from-end flow violation: 861.20 MVA > limit 750.00 MVA
+Branch 35 (bus 4041 -> bus 4044) to-end flow violation: 846.26 MVA > limit 750.00 MVA
+Branch 37 (bus 4042 -> bus 4043) from-end flow violation: 928.95 MVA > limit 900.00 MVA
+Branch 37 (bus 4042 -> bus 4043) to-end flow violation: 905.61 MVA > limit 900.00 MVA
 Generator at bus 1022 reactive power violation: Q 139.78 MVAr > Q_max 130.00 MVAr
 
 --- Simulating branch outage for index 34 (from bus 33 to bus 36) ---
 Power flow converged for this branch outage.
 Violations detected:
-Branch 1  (bus 4021 -> bus 4042) from-end flow violation: 754.53 MVA > limit 750.00 MVA
-Branch 1  (bus 4031 -> bus 4032) from-end flow violation: 1378.67 MVA > limit 950.00 MVA
-Branch 1  (bus 4031 -> bus 4032) to-end flow violation: 1370.65 MVA > limit 950.00 MVA
-Branch 1  (bus 4032 -> bus 4042) from-end flow violation: 792.16 MVA > limit 750.00 MVA
-Branch 1  (bus 4032 -> bus 4044) from-end flow violation: 920.23 MVA > limit 750.00 MVA
-Branch 1  (bus 4032 -> bus 4044) to-end flow violation: 887.63 MVA > limit 750.00 MVA
-Branch 1  (bus 4045 -> bus 4062) to-end flow violation: 502.96 MVA > limit 500.00 MVA
+Branch 27 (bus 4021 -> bus 4042) from-end flow violation: 754.53 MVA > limit 750.00 MVA
+Branch 30 (bus 4031 -> bus 4032) from-end flow violation: 1378.67 MVA > limit 950.00 MVA
+Branch 30 (bus 4031 -> bus 4032) to-end flow violation: 1370.65 MVA > limit 950.00 MVA
+Branch 33 (bus 4032 -> bus 4042) from-end flow violation: 792.16 MVA > limit 750.00 MVA
+Branch 34 (bus 4032 -> bus 4044) from-end flow violation: 920.23 MVA > limit 750.00 MVA
+Branch 34 (bus 4032 -> bus 4044) to-end flow violation: 887.63 MVA > limit 750.00 MVA
+Branch 46 (bus 4045 -> bus 4062) to-end flow violation: 502.96 MVA > limit 500.00 MVA
 Generator at bus 4041 reactive power violation: Q -264.29 MVAr < Q_min -200.00 MVAr
 
 --- Simulating branch outage for index 35 (from bus 33 to bus 41) ---
 Power flow converged for this branch outage.
 Violations detected:
-Branch 1  (bus 4031 -> bus 4032) from-end flow violation: 983.22 MVA > limit 950.00 MVA
-Branch 1  (bus 4031 -> bus 4032) to-end flow violation: 984.07 MVA > limit 950.00 MVA
-Branch 1  (bus 4061 -> bus 4062) from-end flow violation: 522.27 MVA > limit 500.00 MVA
-Branch 1  (bus 4061 -> bus 4062) to-end flow violation: 527.84 MVA > limit 500.00 MVA
+Branch 30 (bus 4031 -> bus 4032) from-end flow violation: 983.22 MVA > limit 950.00 MVA
+Branch 30 (bus 4031 -> bus 4032) to-end flow violation: 984.07 MVA > limit 950.00 MVA
+Branch 48 (bus 4061 -> bus 4062) from-end flow violation: 522.27 MVA > limit 500.00 MVA
+Branch 48 (bus 4061 -> bus 4062) to-end flow violation: 527.84 MVA > limit 500.00 MVA
 
 --- Simulating branch outage for index 36 (from bus 34 to bus 35) ---
 Power flow converged for this branch outage.
 Violations detected:
-Branch 1  (bus 4032 -> bus 4044) from-end flow violation: 818.90 MVA > limit 750.00 MVA
-Branch 1  (bus 4032 -> bus 4044) to-end flow violation: 785.18 MVA > limit 750.00 MVA
-Branch 1  (bus 4042 -> bus 4044) from-end flow violation: 1188.40 MVA > limit 900.00 MVA
-Branch 1  (bus 4042 -> bus 4044) to-end flow violation: 1164.10 MVA > limit 900.00 MVA
+Branch 34 (bus 4032 -> bus 4044) from-end flow violation: 818.90 MVA > limit 750.00 MVA
+Branch 34 (bus 4032 -> bus 4044) to-end flow violation: 785.18 MVA > limit 750.00 MVA
+Branch 38 (bus 4042 -> bus 4044) from-end flow violation: 1188.40 MVA > limit 900.00 MVA
+Branch 38 (bus 4042 -> bus 4044) to-end flow violation: 1164.10 MVA > limit 900.00 MVA
 Generator at bus 1022 reactive power violation: Q 135.98 MVAr > Q_max 130.00 MVAr
 
 --- Simulating branch outage for index 37 (from bus 34 to bus 36) ---
 Power flow converged for this branch outage.
 Violations detected:
-Branch 1  (bus 4032 -> bus 4044) from-end flow violation: 818.84 MVA > limit 750.00 MVA
-Branch 1  (bus 4032 -> bus 4044) to-end flow violation: 786.14 MVA > limit 750.00 MVA
-Branch 1  (bus 4042 -> bus 4043) from-end flow violation: 1194.33 MVA > limit 900.00 MVA
-Branch 1  (bus 4042 -> bus 4043) to-end flow violation: 1157.65 MVA > limit 900.00 MVA
+Branch 34 (bus 4032 -> bus 4044) from-end flow violation: 818.84 MVA > limit 750.00 MVA
+Branch 34 (bus 4032 -> bus 4044) to-end flow violation: 786.14 MVA > limit 750.00 MVA
+Branch 37 (bus 4042 -> bus 4043) from-end flow violation: 1194.33 MVA > limit 900.00 MVA
+Branch 37 (bus 4042 -> bus 4043) to-end flow violation: 1157.65 MVA > limit 900.00 MVA
 Generator at bus 1022 reactive power violation: Q 135.48 MVAr > Q_max 130.00 MVAr
 
 --- Simulating branch outage for index 38 (from bus 35 to bus 36) ---
@@ -315,25 +315,25 @@ Generator at bus 4051 reactive power violation: Q -176.12 MVAr < Q_min -170.00 M
 --- Simulating branch outage for index 39 (from bus 35 to bus 38) ---
 Power flow converged for this branch outage.
 Violations detected:
-Branch 1  (bus 4046 -> bus 4047) to-end flow violation: 766.38 MVA > limit 750.00 MVA
+Branch 47 (bus 4046 -> bus 4047) to-end flow violation: 766.38 MVA > limit 750.00 MVA
 
 --- Simulating branch outage for index 40 (from bus 35 to bus 39) ---
 Power flow converged for this branch outage.
 Violations detected:
-Branch 1  (bus 4046 -> bus 4047) from-end flow violation: 982.03 MVA > limit 750.00 MVA
-Branch 1  (bus 4046 -> bus 4047) to-end flow violation: 1015.12 MVA > limit 750.00 MVA
+Branch 47 (bus 4046 -> bus 4047) from-end flow violation: 982.03 MVA > limit 750.00 MVA
+Branch 47 (bus 4046 -> bus 4047) to-end flow violation: 1015.12 MVA > limit 750.00 MVA
 
 --- Simulating branch outage for index 41 (from bus 36 to bus 37) ---
 Power flow converged for this branch outage.
 Violations detected:
-Branch 2  (bus 4044 -> bus 4045) from-end flow violation: 743.58 MVA > limit 500.00 MVA
-Branch 2  (bus 4044 -> bus 4045) to-end flow violation: 735.31 MVA > limit 500.00 MVA
+Branch 43 (bus 4044 -> bus 4045) from-end flow violation: 743.58 MVA > limit 500.00 MVA
+Branch 43 (bus 4044 -> bus 4045) to-end flow violation: 735.31 MVA > limit 500.00 MVA
 
 --- Simulating branch outage for index 42 (from bus 36 to bus 37) ---
 Power flow converged for this branch outage.
 Violations detected:
-Branch 1  (bus 4044 -> bus 4045) from-end flow violation: 743.58 MVA > limit 500.00 MVA
-Branch 1  (bus 4044 -> bus 4045) to-end flow violation: 735.31 MVA > limit 500.00 MVA
+Branch 42 (bus 4044 -> bus 4045) from-end flow violation: 743.58 MVA > limit 500.00 MVA
+Branch 42 (bus 4044 -> bus 4045) to-end flow violation: 735.31 MVA > limit 500.00 MVA
 
 --- Simulating branch outage for index 43 (from bus 37 to bus 40) ---
 Power flow converged for this branch outage.
@@ -346,34 +346,34 @@ No violations detected.
 --- Simulating branch outage for index 45 (from bus 37 to bus 42) ---
 Power flow converged for this branch outage.
 Violations detected:
-Branch 1  (bus 4031 -> bus 4032) from-end flow violation: 1049.94 MVA > limit 950.00 MVA
-Branch 1  (bus 4031 -> bus 4032) to-end flow violation: 1049.58 MVA > limit 950.00 MVA
-Branch 1  (bus 4032 -> bus 4044) from-end flow violation: 770.11 MVA > limit 750.00 MVA
-Branch 1  (bus 4041 -> bus 4044) from-end flow violation: 822.42 MVA > limit 750.00 MVA
-Branch 1  (bus 4041 -> bus 4044) to-end flow violation: 806.75 MVA > limit 750.00 MVA
-Branch 1  (bus 4044 -> bus 4045) from-end flow violation: 568.91 MVA > limit 500.00 MVA
-Branch 1  (bus 4044 -> bus 4045) to-end flow violation: 562.67 MVA > limit 500.00 MVA
-Branch 2  (bus 4044 -> bus 4045) from-end flow violation: 568.91 MVA > limit 500.00 MVA
-Branch 2  (bus 4044 -> bus 4045) to-end flow violation: 562.67 MVA > limit 500.00 MVA
-Branch 1  (bus 4061 -> bus 4062) from-end flow violation: 687.15 MVA > limit 500.00 MVA
-Branch 1  (bus 4061 -> bus 4062) to-end flow violation: 699.44 MVA > limit 500.00 MVA
+Branch 30 (bus 4031 -> bus 4032) from-end flow violation: 1049.94 MVA > limit 950.00 MVA
+Branch 30 (bus 4031 -> bus 4032) to-end flow violation: 1049.58 MVA > limit 950.00 MVA
+Branch 34 (bus 4032 -> bus 4044) from-end flow violation: 770.11 MVA > limit 750.00 MVA
+Branch 35 (bus 4041 -> bus 4044) from-end flow violation: 822.42 MVA > limit 750.00 MVA
+Branch 35 (bus 4041 -> bus 4044) to-end flow violation: 806.75 MVA > limit 750.00 MVA
+Branch 42 (bus 4044 -> bus 4045) from-end flow violation: 568.91 MVA > limit 500.00 MVA
+Branch 42 (bus 4044 -> bus 4045) to-end flow violation: 562.67 MVA > limit 500.00 MVA
+Branch 43 (bus 4044 -> bus 4045) from-end flow violation: 568.91 MVA > limit 500.00 MVA
+Branch 43 (bus 4044 -> bus 4045) to-end flow violation: 562.67 MVA > limit 500.00 MVA
+Branch 48 (bus 4061 -> bus 4062) from-end flow violation: 687.15 MVA > limit 500.00 MVA
+Branch 48 (bus 4061 -> bus 4062) to-end flow violation: 699.44 MVA > limit 500.00 MVA
 
 --- Simulating branch outage for index 46 (from bus 38 to bus 39) ---
 Power flow converged for this branch outage.
 Violations detected:
-Branch 1  (bus 4043 -> bus 4046) from-end flow violation: 767.99 MVA > limit 500.00 MVA
-Branch 1  (bus 4043 -> bus 4046) to-end flow violation: 746.97 MVA > limit 500.00 MVA
-Branch 1  (bus 4043 -> bus 4047) from-end flow violation: 962.07 MVA > limit 500.00 MVA
-Branch 1  (bus 4043 -> bus 4047) to-end flow violation: 1003.59 MVA > limit 500.00 MVA
+Branch 40 (bus 4043 -> bus 4046) from-end flow violation: 767.99 MVA > limit 500.00 MVA
+Branch 40 (bus 4043 -> bus 4046) to-end flow violation: 746.97 MVA > limit 500.00 MVA
+Branch 41 (bus 4043 -> bus 4047) from-end flow violation: 962.07 MVA > limit 500.00 MVA
+Branch 41 (bus 4043 -> bus 4047) to-end flow violation: 1003.59 MVA > limit 500.00 MVA
 Generator at bus 1022 reactive power violation: Q 130.67 MVAr > Q_max 130.00 MVAr
 Voltage violation at bus 46: 0.89 pu
 
 --- Simulating branch outage for index 47 (from bus 41 to bus 42) ---
 Power flow converged for this branch outage.
 Violations detected:
-Branch 2  (bus 4031 -> bus 4041) from-end flow violation: 759.47 MVA > limit 750.00 MVA
-Branch 1  (bus 4045 -> bus 4062) from-end flow violation: 659.70 MVA > limit 500.00 MVA
-Branch 1  (bus 4045 -> bus 4062) to-end flow violation: 696.78 MVA > limit 500.00 MVA
+Branch 32 (bus 4031 -> bus 4041) from-end flow violation: 759.47 MVA > limit 750.00 MVA
+Branch 46 (bus 4045 -> bus 4062) from-end flow violation: 659.70 MVA > limit 500.00 MVA
+Branch 46 (bus 4045 -> bus 4062) to-end flow violation: 696.78 MVA > limit 500.00 MVA
 Generator at bus 1022 reactive power violation: Q 139.64 MVAr > Q_max 130.00 MVAr
 Voltage violation at bus 61: 0.86 pu
 Voltage violation at bus 4061: 0.88 pu
@@ -428,8 +428,8 @@ No violations detected.
 --- Simulating branch outage for index 62 (from bus 15 to bus 28) ---
 Power flow converged for this branch outage.
 Violations detected:
-Branch 1  (bus 1011 -> bus 1013) to-end flow violation: 512.99 MVA > limit 500.00 MVA
-Branch 2  (bus 1011 -> bus 1013) to-end flow violation: 512.99 MVA > limit 500.00 MVA
+Branch 1 (bus 1011 -> bus 1013) to-end flow violation: 512.99 MVA > limit 500.00 MVA
+Branch 2 (bus 1011 -> bus 1013) to-end flow violation: 512.99 MVA > limit 500.00 MVA
 Generator at bus 1013 reactive power violation: Q 366.28 MVAr > Q_max 300.00 MVAr
 
 --- Simulating branch outage for index 63 (from bus 19 to bus 30) ---
@@ -438,14 +438,14 @@ Power flow did not converge due to singular matrix (system may be disconnected).
 --- Simulating branch outage for index 64 (from bus 23 to bus 36) ---
 Power flow converged for this branch outage.
 Violations detected:
-Branch 2  (bus 1044 -> bus 4044) from-end flow violation: 1115.22 MVA > limit 1000.00 MVA
-Branch 2  (bus 1044 -> bus 4044) to-end flow violation: 1133.09 MVA > limit 1000.00 MVA
+Branch 66 (bus 1044 -> bus 4044) from-end flow violation: 1115.22 MVA > limit 1000.00 MVA
+Branch 66 (bus 1044 -> bus 4044) to-end flow violation: 1133.09 MVA > limit 1000.00 MVA
 
 --- Simulating branch outage for index 65 (from bus 23 to bus 36) ---
 Power flow converged for this branch outage.
 Violations detected:
-Branch 1  (bus 1044 -> bus 4044) from-end flow violation: 1115.22 MVA > limit 1000.00 MVA
-Branch 1  (bus 1044 -> bus 4044) to-end flow violation: 1133.09 MVA > limit 1000.00 MVA
+Branch 65 (bus 1044 -> bus 4044) from-end flow violation: 1115.22 MVA > limit 1000.00 MVA
+Branch 65 (bus 1044 -> bus 4044) to-end flow violation: 1133.09 MVA > limit 1000.00 MVA
 
 --- Simulating branch outage for index 66 (from bus 24 to bus 37) ---
 Power flow converged for this branch outage.

@@ -465,14 +465,14 @@ def DisplayResults_and_loading(V, lnd):
         S_to = V[to_idx] * np.conjugate(np.dot(lnd.Y_to[i, :], V))
         
         # Look up the branch rating using the tuple (from_bus, to_bus)
-        if (from_bus, to_bus,ID) in br_rating_dict and br_rating_dict[(from_bus, to_bus,ID)] > 0:
+        if (from_bus, to_bus, ID) in br_rating_dict and br_rating_dict[(from_bus, to_bus, ID)] > 0:
             # Convert branch rating from MVA to per unit.
             br_rating_pu = br_rating_dict[(from_bus, to_bus,ID)] / lnd.MVA_base
             load_from_pct = 100 * (np.abs(S_from) / br_rating_pu)
             load_to_pct   = 100 * (np.abs(S_to) / br_rating_pu)
-        elif (from_bus,to_bus,ID)in Trans_rat_dict and Trans_rat_dict[(from_bus,to_bus,ID)] > 0:
+        elif (from_bus,to_bus, ID)in Trans_rat_dict and Trans_rat_dict[(from_bus,to_bus, ID)] > 0:
             # Convert branch rating from MVA to per unit.
-            trans_rating_pu = Trans_rat_dict[(from_bus, to_bus,ID)] / lnd.MVA_base
+            trans_rating_pu = Trans_rat_dict[(from_bus, to_bus, ID)] / lnd.MVA_base
             load_from_pct = 100 * (np.abs(S_from) / trans_rating_pu)
             load_to_pct   = 100 * (np.abs(S_to) / trans_rating_pu)
         else:
