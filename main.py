@@ -11,15 +11,13 @@ def main():
     
     with open(results_file, "w") as out:
         # Load network data from file
-        #lnd = ld.load_network_data('testsystem.txt')
         lnd = ld.load_network_data('Nordic32_SA.txt')
-        #lnd = ld.load_network_data('TestSystem_with_trf.txt')
-    
-        # Set maximum number of iterations and tolerance for convergence
+
+        # max iterations and tolerance
         max_iter = 30
-        err_tol = 1e-6
+        err_tol = 1e-4
         
-        # Run the base-case Newton-Raphson power flow calculation
+        #base-case
         V, success, n_iter = PowerFlowNewton(
             lnd.Ybus, lnd.Sbus, lnd.V0, 
             lnd.pv_index, lnd.pq_index,
@@ -30,6 +28,7 @@ def main():
         if success:
             out.write("Base-case power flow converged.\n")
             # Check for base-case violations
+            #DisplayResults_and_loading(V, lnd)
             violations = system_violations(V, lnd.Ybus, lnd.Y_from, lnd.Y_to, lnd)
             if violations:
                 out.write("Base-case violations detected:\n")
@@ -63,7 +62,7 @@ def main():
                 fr_ind, to_ind, br_ind, Ybr_mat
             )
             
-            # Run power flow on the modified network inside a try/except block:
+            # Run power flow on the modified network
             try:
                 V_mod, success_mod, n_iter_mod = PowerFlowNewton(
                     Ybus_mod, lnd.Sbus, lnd.V0,
