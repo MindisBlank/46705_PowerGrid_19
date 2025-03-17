@@ -7,12 +7,8 @@ How to carry out Power Flow in a new *.py file?
 See the example in table 1 in the assignment text
 """
 import numpy as np
-from logger import log_function, setup_logger
-
-setup_logger()
 
 
-@log_function
 def PowerFlowNewton(Ybus, Sbus, V0, pv_index, pq_index, max_iter, err_tol, print_progress=True, debug=False):
     """
     Solve the power flow equations using the Newton-Raphson method.
@@ -392,8 +388,7 @@ def DisplayResults_and_loading(V, lnd):
     num_branches = len(lnd.branch_from)
 
     # Create a dictionary for generator ratings keyed by bus label.
-    # e.g., {'BUS1HV': rating1, 'BUS2HV': rating2, ...}
-    gen_rating_dict = {bus_label: rating for (bus_label, rating) in lnd.gen_rating}
+    gen_rating_dict = {bus_label: rating for (bus_label, rating, Q_max, Q_min) in lnd.gen_rating}
 
     # Create a dictionary for branch ratings keyed by (from_bus, to_bus) tuple (both 1-based)
     br_rating_dict = {(fb, tb,id): rating for (fb, tb,id, rating) in lnd.branch_rating}
@@ -431,10 +426,8 @@ def DisplayResults_and_loading(V, lnd):
             # Convert the generator rating from MVA to per unit.
             gen_rating_pu = gen_rating_dict[bus_num] / lnd.MVA_base
             gen_loading_pct = 100 * (np.abs(S_gen[i]) / gen_rating_pu)
-            #print(f"gen_rating_pu: {gen_rating_pu}")
         else:
             gen_loading_pct = 0.0
-            #print(f"no gen_rating_pu!")
 
         line = ("{:<8d} {:<15} {:>12.3f} {:>12.2f} {:>15.3f} {:>15.3f} {:>20.3f} {:>15.3f} {:>15.3f}"
                 .format(bus_num, label, Vm, theta,
@@ -465,14 +458,14 @@ def DisplayResults_and_loading(V, lnd):
         S_to = V[to_idx] * np.conjugate(np.dot(lnd.Y_to[i, :], V))
         
         # Look up the branch rating using the tuple (from_bus, to_bus)
-        if (from_bus, to_bus,ID) in br_rating_dict and br_rating_dict[(from_bus, to_bus,ID)] > 0:
+        if (from_bus, to_bus, ID) in br_rating_dict and br_rating_dict[(from_bus, to_bus, ID)] > 0:
             # Convert branch rating from MVA to per unit.
             br_rating_pu = br_rating_dict[(from_bus, to_bus,ID)] / lnd.MVA_base
             load_from_pct = 100 * (np.abs(S_from) / br_rating_pu)
             load_to_pct   = 100 * (np.abs(S_to) / br_rating_pu)
-        elif (from_bus,to_bus,ID)in Trans_rat_dict and Trans_rat_dict[(from_bus,to_bus,ID)] > 0:
+        elif (from_bus,to_bus, ID)in Trans_rat_dict and Trans_rat_dict[(from_bus,to_bus, ID)] > 0:
             # Convert branch rating from MVA to per unit.
-            trans_rating_pu = Trans_rat_dict[(from_bus, to_bus,ID)] / lnd.MVA_base
+            trans_rating_pu = Trans_rat_dict[(from_bus, to_bus, ID)] / lnd.MVA_base
             load_from_pct = 100 * (np.abs(S_from) / trans_rating_pu)
             load_to_pct   = 100 * (np.abs(S_to) / trans_rating_pu)
         else:
